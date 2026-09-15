@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ELT 102 Lesson 4: Op-Amp Interactive Lab Studio</title>
+<style>
+:root{
+  --navy:#0047AB; --navy-dark:#003580; --navy-darker:#002a66;
+  --green:#00a86b; --green-dark:#00875a;
+  --amber:#e8a020; --red:#c0392b;
+  --bg:#f5f7fa; --card:#ffffff; --card-alt:#eef2f8;
+  --text:#1c2733; --text-muted:#5a6b7d;
+  --border:#d7dfe9; --shadow:0 2px 10px rgba(0,40,90,.10);
+  --code-bg:#eef2f8;
+}
+[data-theme="dark"]{
+  --navy:#4d8cff; --navy-dark:#3a6fd0; --navy-darker:#0d1b2e;
+  --green:#2ecc8f; --green-dark:#22b07a;
+  --amber:#f0b545; --red:#e06050;
+  --bg:#0f1620; --card:#18222f; --card-alt:#1f2c3c;
+  --text:#e8eef5; --text-muted:#9fb0c2;
+  --border:#2c3a4c; --shadow:0 2px 12px rgba(0,0,0,.45);
+  --code-bg:#111a26;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:Georgia,'Times New Roman',serif;background:var(--bg);color:var(--text);line-height:1.6;transition:background .3s,color .3s;}
+.topbar{background:linear-gradient(135deg,#0047AB,#002a66);color:#fff;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.25);}
+[data-theme="dark"] .topbar{background:linear-gradient(135deg,#0d1b2e,#001a40);}
+.topbar .brand{font-family:'Arial Narrow',Arial,sans-serif;font-weight:bold;font-size:1.05rem;letter-spacing:.05em;}
+.topbar .lesson-badge{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);border-radius:20px;padding:3px 14px;font-family:'Arial Narrow',Arial,sans-serif;font-size:.85rem;}
+.theme-btn{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:20px;padding:5px 16px;cursor:pointer;font-family:'Arial Narrow',Arial,sans-serif;font-size:.85rem;}
+.theme-btn:hover{background:rgba(255,255,255,.3);}
+.crumbs{background:var(--card);border-bottom:1px solid var(--border);padding:8px 24px;font-family:'Arial Narrow',Arial,sans-serif;font-size:.85rem;color:var(--text-muted);}
+.crumbs a{color:var(--navy);text-decoration:none;} .crumbs a:hover{text-decoration:underline;}
+.hero{background:linear-gradient(135deg,#0047AB 0%,#003580 55%,#00875a 130%);color:#fff;text-align:center;padding:44px 24px 34px;}
+[data-theme="dark"] .hero{background:linear-gradient(135deg,#123a75 0%,#0d1b2e 55%,#0e4a36 130%);}
+.hero .kicker{display:inline-block;background:var(--green);color:#fff;border-radius:20px;padding:4px 18px;font-family:'Arial Narrow',Arial,sans-serif;font-size:.85rem;letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px;}
+.hero h1{font-size:2rem;margin-bottom:10px;line-height:1.25;}
+.hero .sub{max-width:760px;margin:0 auto;font-size:1.02rem;opacity:.92;font-style:italic;}
+.wrap{max-width:940px;margin:0 auto;padding:28px 20px 70px;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);padding:18px 22px;margin-bottom:22px;}
+
+/* progress */
+.progress-wrap{background:var(--card-alt);border:1px solid var(--border);border-radius:20px;height:16px;overflow:hidden;margin:10px 0 6px;}
+.progress-fill{background:linear-gradient(90deg,var(--green),var(--green-dark));height:100%;width:0%;transition:width .4s;}
+#progressText{font-family:Arial,sans-serif;font-size:.85rem;color:var(--text-muted);text-align:center;}
+
+/* tabs */
+.tab-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;}
+.tab-btn{flex:1 1 140px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px 8px;cursor:pointer;font-family:Arial,sans-serif;font-size:.85rem;color:var(--text);text-align:center;transition:background .2s,color .2s;}
+.tab-btn:hover{background:var(--card-alt);}
+.tab-btn.active{background:var(--navy);color:#fff;border-color:var(--navy);}
+.tab-btn .check{color:var(--green);font-weight:bold;margin-left:4px;display:none;}
+.tab-btn.active .check{color:#fff;}
+
+/* panels */
+.panel{display:none;}
+.panel.active{display:block;}
+h2.ctitle{font-family:Arial,sans-serif;color:var(--navy);font-size:1.3rem;margin-bottom:4px;}
+[data-theme="dark"] h2.ctitle{color:var(--green);}
+.pill{display:inline-block;background:var(--card-alt);border:1px solid var(--border);border-radius:20px;padding:2px 12px;font-family:Arial,sans-serif;font-size:.78rem;color:var(--text-muted);margin:2px 4px 8px 0;}
+.eqn{font-family:'Courier New',monospace;background:var(--code-bg);border:1px solid var(--border);border-radius:6px;padding:2px 8px;color:var(--navy);}
+[data-theme="dark"] .eqn{color:var(--green);}
+
+.two-col{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;align-items:start;}
+@media(max-width:760px){.two-col{grid-template-columns:1fr;}}
+
+svg.schem{width:100%;height:auto;background:var(--card-alt);border:1px solid var(--border);border-radius:8px;}
+.wire{stroke:var(--text);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+.opamp-fill{fill:var(--card);stroke:var(--navy);stroke-width:2.5;}
+[data-theme="dark"] .opamp-fill{fill:var(--navy-darker);}
+.gnd{stroke:var(--text);stroke-width:2;fill:none;}
+.led-fill{fill:var(--card-alt);stroke:var(--red);stroke-width:2;transition:fill .2s;}
+.led-fill.lit{fill:var(--amber);}
+.term{fill:var(--card);stroke:var(--navy);stroke-width:2;}
+text{fill:var(--text);font-family:Arial,sans-serif;}
+.lbl{font-size:13px;}
+.val{fill:var(--green);font-weight:bold;font-size:13px;}
+[data-theme="dark"] .val{fill:#2ecc8f;}
+.small{font-size:11px;fill:var(--text-muted);}
+.note-line{font-size:11px;fill:var(--text-muted);font-style:italic;}
+
+.calc-box{background:var(--card-alt);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:14px;}
+.calc-box h3{font-family:Arial,sans-serif;font-size:1rem;color:var(--navy);margin-bottom:8px;}
+[data-theme="dark"] .calc-box h3{color:var(--green);}
+.calc-box label{display:block;font-family:Arial,sans-serif;font-size:.85rem;margin-bottom:8px;}
+.calc-box input[type=number]{width:80px;margin-left:6px;padding:3px 6px;border:1px solid var(--border);border-radius:5px;background:var(--card);color:var(--text);}
+.calc-box input[type=range]{width:140px;vertical-align:middle;}
+.calcout{font-family:'Courier New',monospace;font-size:1rem;background:var(--code-bg);border:1px solid var(--border);border-radius:6px;padding:8px 10px;margin-top:6px;}
+
+.steps-box{margin-bottom:14px;}
+.steps-box h3{font-family:Arial,sans-serif;font-size:1rem;color:var(--navy);margin-bottom:6px;}
+[data-theme="dark"] .steps-box h3{color:var(--green);}
+.steplist{list-style:none;margin:0;}
+.steplist li{margin-bottom:6px;font-size:.95rem;}
+.steplist input{margin-right:8px;}
+.stepcount{font-family:Arial,sans-serif;font-size:.8rem;color:var(--text-muted);margin-top:4px;}
+
+.quiz-box h3{font-family:Arial,sans-serif;font-size:1rem;color:var(--navy);margin-bottom:6px;}
+[data-theme="dark"] .quiz-box h3{color:var(--green);}
+.qtext{margin-bottom:8px;}
+.qoptions{display:flex;flex-direction:column;gap:6px;margin-bottom:8px;}
+.qopt{text-align:left;background:var(--card);border:1px solid var(--border);border-radius:6px;padding:8px 12px;cursor:pointer;font-family:Arial,sans-serif;font-size:.9rem;color:var(--text);}
+.qopt:hover{background:var(--card-alt);}
+.qopt.correct{background:var(--green);color:#fff;border-color:var(--green-dark);}
+.qopt.incorrect{background:var(--red);color:#fff;border-color:#a83226;}
+.qfeedback{font-size:.9rem;padding:8px 10px;background:var(--code-bg);border-radius:6px;min-height:1em;}
+
+details.intro-note{margin-bottom:22px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;box-shadow:var(--shadow);}
+details.intro-note summary{cursor:pointer;font-family:Arial,sans-serif;font-weight:bold;color:var(--navy);}
+[data-theme="dark"] details.intro-note summary{color:var(--green);}
+details.intro-note ul{margin:10px 0 0 22px;}
+
+footer{text-align:center;padding:24px;color:var(--text-muted);font-family:Arial,sans-serif;font-size:.85rem;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">⚡ ELT 102 · Digital Logic &amp; Solid State Devices</div>
+  <div class="lesson-badge">Lesson 4 Companion · Interactive Lab Studio</div>
+  <button class="theme-btn" onclick="toggleTheme()">🌓 Mode</button>
+</div>
+<div class="crumbs"><a href="lesson04.html">Lesson 4</a> › Op-Amp Interactive Lab Studio</div>
+
+<div class="hero">
+  <div class="kicker">Schematics + Tinkercad, Combined</div>
+  <h1>Op-Amp Interactive Lab Studio</h1>
+  <p class="sub">Every configuration in one place: a proper schematic, a live gain calculator that redraws the component values, a Tinkercad build checklist, and a predict-the-output check — six labs, one page.</p>
+</div>
+
+<div class="wrap">
+
+<details class="intro-note">
+  <summary>📋 How to use this page (and a quick Tinkercad refresher)</summary>
+  <p style="margin-top:8px;">Work through the six tabs below in order. For each circuit: (1) adjust the calculator to see the gain equation and the schematic's labels update live, (2) build the circuit in Tinkercad Circuits following the checklist, (3) answer the predict-the-output question. A circuit is marked complete once every step is checked and the question is answered correctly — track your progress in the bar below.</p>
+  <ul>
+    <li>Tinkercad Circuits is free, browser-based, and needs no install — search "Op Amp" in the components panel for the ideal block or a 741/LM358-class IC.</li>
+    <li>Every circuit here uses a dual ±12 V supply, matching the lesson's grapher clipping demo.</li>
+    <li>Drop a Function Generator and Oscilloscope onto the breadboard for every build — Ch.1 on the input node, Ch.2 on OUT.</li>
+  </ul>
+</details>
+
+<div class="card">
+  <div id="progressText">0 / 6 circuits completed</div>
+  <div class="progress-wrap"><div class="progress-fill" id="progressFill"></div></div>
+</div>
+
+<div class="tab-bar" id="tabBar">
+  <button class="tab-btn" data-target="panel-c1">1 · Inverting <span class="check">✓</span></button>
+  <button class="tab-btn" data-target="panel-c2">2 · Non-Inv <span class="check">✓</span></button>
+  <button class="tab-btn" data-target="panel-c3">3 · Follower <span class="check">✓</span></button>
+  <button class="tab-btn" data-target="panel-c4">4 · Comparator <span class="check">✓</span></button>
+  <button class="tab-btn" data-target="panel-c5">5 · Integrator <span class="check">✓</span></button>
+  <button class="tab-btn" data-target="panel-c6">6 · Differentiator <span class="check">✓</span></button>
+</div>
+
+<!-- ============ PANEL 1: INVERTING ============ -->
+<section class="panel" id="panel-c1" data-cid="c1">
+  <h2 class="ctitle">1 · Inverting Amplifier</h2>
+  <span class="pill">Signal → (−) input</span><span class="pill">Virtual ground</span><span class="pill">±12 V rails</span>
+  <div class="two-col">
+    <div>
+      <svg class="schem" viewBox="0 0 760 460" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="90" cy="195" r="22" class="wire"/>
+        <path d="M78,195 Q84,183 90,195 T102,195" class="wire"/>
+        <text x="90" y="234" class="lbl" text-anchor="middle">Vin</text>
+        <text x="90" y="248" class="note-line" text-anchor="middle">0.5 Vpp, 1 kHz sine</text>
+        <line x1="112" y1="195" x2="175" y2="195" class="wire"/>
+        <line x1="175" y1="195" x2="190" y2="195" class="wire"/>
+        <polyline points="190,195 200,186 210,204 220,186 230,204 240,186 250,195" class="wire"/>
+        <line x1="250" y1="195" x2="265" y2="195" class="wire"/>
+        <text x="220" y="176" class="lbl" text-anchor="middle">R_in</text>
+        <text x="220" y="163" class="val" text-anchor="middle" id="c1-rin-txt">10 kΩ</text>
+        <line x1="265" y1="195" x2="300" y2="195" class="wire"/>
+        <circle cx="300" cy="195" r="3" fill="var(--text)"/>
+        <line x1="300" y1="195" x2="380" y2="195" class="wire"/>
+        <line x1="300" y1="195" x2="300" y2="110" class="wire"/>
+        <line x1="300" y1="110" x2="355" y2="110" class="wire"/>
+        <line x1="355" y1="110" x2="370" y2="110" class="wire"/>
+        <polyline points="370,110 380,101 390,119 400,101 410,119 420,101 430,110" class="wire"/>
+        <line x1="430" y1="110" x2="445" y2="110" class="wire"/>
+        <text x="400" y="94" class="lbl" text-anchor="middle">R_f</text>
+        <text x="400" y="81" class="val" text-anchor="middle" id="c1-rf-txt">100 kΩ</text>
+        <line x1="445" y1="110" x2="500" y2="110" class="wire"/>
+        <line x1="500" y1="110" x2="500" y2="230" class="wire"/>
+        <line x1="380" y1="265" x2="380" y2="350" class="wire"/>
+        <line x1="380" y1="350" x2="380" y2="358" class="gnd"/>
+        <line x1="368" y1="358" x2="392" y2="358" class="gnd"/>
+        <line x1="372" y1="364" x2="388" y2="364" class="gnd"/>
+        <line x1="376" y1="370" x2="384" y2="370" class="gnd"/>
+        <polygon points="380,170 380,290 500,230" class="opamp-fill"/>
+        <text x="392" y="200" font-weight="bold" font-size="16">−</text>
+        <text x="392" y="270" font-weight="bold" font-size="16">+</text>
+        <line x1="420" y1="120" x2="420" y2="190" class="wire"/>
+        <text x="426" y="145" class="lbl">V+</text>
+        <text x="392" y="108" class="val">+12 V</text>
+        <line x1="420" y1="340" x2="420" y2="270" class="wire"/>
+        <text x="426" y="315" class="lbl">V−</text>
+        <text x="392" y="358" class="val">−12 V</text>
+        <line x1="500" y1="230" x2="560" y2="230" class="wire"/>
+        <line x1="560" y1="230" x2="600" y2="230" class="wire"/>
+        <circle cx="600" cy="230" r="4" class="term"/>
+        <text x="612" y="234" font-weight="bold" class="lbl">Vout</text>
+      </svg>
+    </div>
+    <div><div class="calc-box" id="calc-c1"></div></div>
+  </div>
+  <div class="steps-box" id="steps-c1"></div>
+  <div class="quiz-box" id="quiz-c1"></div>
+</section>
+
+<!-- ============ PANEL 2: NON-INVERTING ============ -->
+<section class="panel" id="panel-c2" data-cid="c2">
+  <h2 class="ctitle">2 · Non-Inverting Amplifier</h2>
+  <span class="pill">Signal → (+) input</span><span class="pill">Huge Z_in</span><span class="pill">±12 V rails</span>
+  <div class="two-col">
+    <div>
+      <svg class="schem" viewBox="0 0 760 460" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="90" cy="265" r="22" class="wire"/>
+        <path d="M78,265 Q84,253 90,265 T102,265" class="wire"/>
+        <text x="90" y="304" class="lbl" text-anchor="middle">Vin</text>
+        <text x="90" y="318" class="note-line" text-anchor="middle">0.5 Vpp, 1 kHz sine</text>
+        <line x1="112" y1="265" x2="380" y2="265" class="wire"/>
+        <circle cx="300" cy="195" r="3" fill="var(--text)"/>
+        <line x1="300" y1="195" x2="380" y2="195" class="wire"/>
+        <line x1="300" y1="195" x2="300" y2="225" class="wire"/>
+        <polyline points="300,225 291,235 309,245 291,255 309,265 291,275 300,285" class="wire"/>
+        <line x1="300" y1="285" x2="300" y2="315" class="wire"/>
+        <text x="316" y="255" class="lbl">R_in</text>
+        <text x="316" y="269" class="val" id="c2-rin-txt">10 kΩ</text>
+        <line x1="300" y1="315" x2="300" y2="323" class="gnd"/>
+        <line x1="288" y1="323" x2="312" y2="323" class="gnd"/>
+        <line x1="292" y1="329" x2="308" y2="329" class="gnd"/>
+        <line x1="296" y1="335" x2="304" y2="335" class="gnd"/>
+        <line x1="300" y1="195" x2="300" y2="110" class="wire"/>
+        <line x1="300" y1="110" x2="355" y2="110" class="wire"/>
+        <line x1="355" y1="110" x2="370" y2="110" class="wire"/>
+        <polyline points="370,110 380,101 390,119 400,101 410,119 420,101 430,110" class="wire"/>
+        <line x1="430" y1="110" x2="445" y2="110" class="wire"/>
+        <text x="400" y="94" class="lbl" text-anchor="middle">R_f</text>
+        <text x="400" y="81" class="val" text-anchor="middle" id="c2-rf-txt">90 kΩ</text>
+        <line x1="445" y1="110" x2="500" y2="110" class="wire"/>
+        <line x1="500" y1="110" x2="500" y2="230" class="wire"/>
+        <polygon points="380,170 380,290 500,230" class="opamp-fill"/>
+        <text x="392" y="200" font-weight="bold" font-size="16">−</text>
+        <text x="392" y="270" font-weight="bold" font-size="16">+</text>
+        <line x1="420" y1="120" x2="420" y2="190" class="wire"/>
+        <text x="426" y="145" class="lbl">V+</text>
+        <text x="392" y="108" class="val">+12 V</text>
+        <line x1="420" y1="340" x2="420" y2="270" class="wire"/>
+        <text x="426" y="315" class="lbl">V−</text>
+        <text x="392" y="358" class="val">−12 V</text>
+        <line x1="500" y1="230" x2="560" y2="230" class="wire"/>
+        <line x1="560" y1="230" x2="600" y2="230" class="wire"/>
+        <circle cx="600" cy="230" r="4" class="term"/>
+        <text x="612" y="234" font-weight="bold" class="lbl">Vout</text>
+      </svg>
+    </div>
+    <div><div class="calc-box" id="calc-c2"></div></div>
+  </div>
+  <div class="steps-box" id="steps-c2"></div>
+  <div class="quiz-box" id="quiz-c2"></div>
+</section>
+
+<!-- ============ PANEL 3: FOLLOWER ============ -->
+<section class="panel" id="panel-c3" data-cid="c3">
+  <h2 class="ctitle">3 · Voltage Follower (Buffer)</h2>
+  <span class="pill">No gain resistors</span><span class="pill">A_V = 1 exactly</span><span class="pill">100% feedback</span>
+  <div class="two-col">
+    <div>
+      <svg class="schem" viewBox="0 0 760 460" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="90" cy="265" r="22" class="wire"/>
+        <path d="M78,265 Q84,253 90,265 T102,265" class="wire"/>
+        <text x="90" y="304" class="lbl" text-anchor="middle">Vin</text>
+        <text x="90" y="318" class="note-line" text-anchor="middle">1 Vpp, 1 kHz sine</text>
+        <line x1="112" y1="265" x2="380" y2="265" class="wire"/>
+        <line x1="500" y1="230" x2="500" y2="140" class="wire"/>
+        <line x1="500" y1="140" x2="380" y2="140" class="wire"/>
+        <line x1="380" y1="140" x2="380" y2="195" class="wire"/>
+        <text x="440" y="132" class="note-line" text-anchor="middle">100% feedback — direct wire, no components</text>
+        <polygon points="380,170 380,290 500,230" class="opamp-fill"/>
+        <text x="392" y="200" font-weight="bold" font-size="16">−</text>
+        <text x="392" y="270" font-weight="bold" font-size="16">+</text>
+        <line x1="420" y1="340" x2="420" y2="270" class="wire"/>
+        <text x="426" y="315" class="lbl">V−</text>
+        <text x="392" y="358" class="val">−12 V</text>
+        <line x1="450" y1="100" x2="450" y2="172" class="wire"/>
+        <text x="456" y="145" class="lbl">V+</text>
+        <text x="422" y="90" class="val">+12 V</text>
+        <line x1="500" y1="230" x2="560" y2="230" class="wire"/>
+        <line x1="560" y1="230" x2="600" y2="230" class="wire"/>
+        <circle cx="600" cy="230" r="4" class="term"/>
+        <text x="612" y="234" font-weight="bold" class="lbl">Vout</text>
+        <line x1="560" y1="230" x2="560" y2="270" class="wire"/>
+        <polygon points="550,280 570,280 560,300" class="led-fill" id="c3-led"/>
+        <line x1="550" y1="300" x2="570" y2="300" class="led-fill"/>
+        <line x1="572" y1="278" x2="580" y2="270" class="led-fill"/>
+        <line x1="576" y1="282" x2="584" y2="274" class="led-fill"/>
+        <text x="586" y="292" class="small">LED</text>
+        <line x1="560" y1="300" x2="560" y2="315" class="wire"/>
+        <polyline points="560,315 551,325 569,335 551,345 569,355 560,365" class="wire"/>
+        <text x="576" y="345" class="lbl">330 Ω</text>
+        <line x1="560" y1="365" x2="560" y2="375" class="wire"/>
+        <line x1="560" y1="375" x2="560" y2="383" class="gnd"/>
+        <line x1="548" y1="383" x2="572" y2="383" class="gnd"/>
+        <line x1="552" y1="389" x2="568" y2="389" class="gnd"/>
+        <line x1="556" y1="395" x2="564" y2="395" class="gnd"/>
+        <text x="440" y="420" class="note-line" text-anchor="middle">Optional buffered load — demonstrates high Z_in / low Z_out</text>
+      </svg>
+    </div>
+    <div><div class="calc-box" id="calc-c3"></div></div>
+  </div>
+  <div class="steps-box" id="steps-c3"></div>
+  <div class="quiz-box" id="quiz-c3"></div>
+</section>
+
+<!-- ============ PANEL 4: COMPARATOR ============ -->
+<section class="panel" id="panel-c4" data-cid="c4">
+  <h2 class="ctitle">4 · Comparator</h2>
+  <span class="pill">No feedback (open loop)</span><span class="pill">Output → ±V_sat</span><span class="pill">10 kΩ pot sets V_REF</span>
+  <div class="two-col">
+    <div>
+      <svg class="schem" viewBox="0 0 760 460" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="90" cy="265" r="22" class="wire"/>
+        <path d="M78,265 Q84,253 90,265 T102,265" class="wire"/>
+        <text x="90" y="304" class="lbl" text-anchor="middle">Vin</text>
+        <text x="90" y="318" class="note-line" text-anchor="middle" id="c4-vin-txt">2 V</text>
+        <line x1="112" y1="265" x2="380" y2="265" class="wire"/>
+        <line x1="150" y1="150" x2="150" y2="180" class="wire"/>
+        <text x="112" y="140" class="val">+12 V</text>
+        <rect x="140" y="180" width="20" height="130" class="wire"/>
+        <line x1="150" y1="310" x2="150" y2="340" class="wire"/>
+        <text x="112" y="356" class="val">−12 V</text>
+        <text x="60" y="248" class="lbl">10 kΩ pot</text>
+        <text x="60" y="262" class="small">(sets V_REF)</text>
+        <line x1="172" y1="160" x2="152" y2="193" class="wire"/>
+        <polygon points="152,193 160,189 158,198" fill="var(--text)"/>
+        <line x1="160" y1="195" x2="300" y2="195" class="wire"/>
+        <line x1="300" y1="195" x2="380" y2="195" class="wire"/>
+        <text x="230" y="185" class="val" text-anchor="middle" id="c4-vref-txt">V_REF = 0 V</text>
+        <text x="500" y="185" class="note-line" text-anchor="middle">(no feedback — open loop)</text>
+        <polygon points="380,170 380,290 500,230" class="opamp-fill"/>
+        <text x="392" y="200" font-weight="bold" font-size="16">−</text>
+        <text x="392" y="270" font-weight="bold" font-size="16">+</text>
+        <line x1="420" y1="120" x2="420" y2="190" class="wire"/>
+        <text x="426" y="145" class="lbl">V+</text>
+        <line x1="420" y1="340" x2="420" y2="270" class="wire"/>
+        <text x="426" y="315" class="lbl">V−</text>
+        <line x1="500" y1="230" x2="600" y2="230" class="wire"/>
+        <circle cx="600" cy="230" r="4" class="term"/>
+        <text x="612" y="234" font-weight="bold" class="lbl">Vout</text>
+        <line x1="560" y1="230" x2="560" y2="270" class="wire"/>
+        <polygon points="550,280 570,280 560,300" class="led-fill" id="c4-led"/>
+        <line x1="550" y1="300" x2="570" y2="300" class="led-fill"/>
+        <line x1="572" y1="278" x2="580" y2="270" class="led-fill"/>
+        <line x1="576" y1="282" x2="584" y2="274" class="led-fill"/>
+        <text x="586" y="292" class="small">LED</text>
+        <line x1="560" y1="300" x2="560" y2="315" class="wire"/>
+        <polyline points="560,315 551,325 569,335 551,345 569,355 560,365" class="wire"/>
+        <text x="576" y="345" class="lbl">330 Ω</text>
+        <line x1="560" y1="365" x2="560" y2="375" class="wire"/>
+        <line x1="560" y1="375" x2="560" y2="383" class="gnd"/>
+        <line x1="548" y1="383" x2="572" y2="383" class="gnd"/>
+        <line x1="552" y1="389" x2="568" y2="389" class="gnd"/>
+        <line x1="556" y1="395" x2="564" y2="395" class="gnd"/>
+      </svg>
+    </div>
+    <div><div class="calc-box" id="calc-c4"></div></div>
+  </div>
+  <div class="steps-box" id="steps-c4"></div>
+  <div class="quiz-box" id="quiz-c4"></div>
+</section>
+
+<!-- ============ PANEL 5: INTEGRATOR ============ -->
+<section class="panel" id="panel-c5" data-cid="c5">
+  <h2 class="ctitle">5 · Integrator</h2>
+  <span class="pill">C_f in feedback</span><span class="pill">Bleed R = 1 MΩ</span><span class="pill">Square → triangle</span>
+  <div class="two-col">
+    <div>
+      <svg class="schem" viewBox="0 0 760 460" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="90" cy="195" r="22" class="wire"/>
+        <path d="M74,195 L78,187 L82,203 L86,187 L90,203 L94,187 L98,195" class="wire"/>
+        <text x="90" y="234" class="lbl" text-anchor="middle">Vin</text>
+        <text x="90" y="248" class="note-line" text-anchor="middle">square wave, 1 Vpp, 500 Hz</text>
+        <line x1="112" y1="195" x2="175" y2="195" class="wire"/>
+        <line x1="175" y1="195" x2="190" y2="195" class="wire"/>
+        <polyline points="190,195 200,186 210,204 220,186 230,204 240,186 250,195" class="wire"/>
+        <line x1="250" y1="195" x2="265" y2="195" class="wire"/>
+        <text x="220" y="176" class="lbl" text-anchor="middle">R_in</text>
+        <text x="220" y="163" class="val" text-anchor="middle" id="c5-rin-txt">10 kΩ</text>
+        <line x1="265" y1="195" x2="300" y2="195" class="wire"/>
+        <circle cx="300" cy="195" r="3" fill="var(--text)"/>
+        <line x1="300" y1="195" x2="380" y2="195" class="wire"/>
+        <line x1="300" y1="195" x2="300" y2="140" class="wire"/>
+        <circle cx="300" cy="140" r="3" fill="var(--text)"/>
+        <line x1="300" y1="140" x2="300" y2="110" class="wire"/>
+        <line x1="300" y1="110" x2="355" y2="110" class="wire"/>
+        <line x1="355" y1="110" x2="395" y2="110" class="wire"/>
+        <line x1="395" y1="96" x2="395" y2="124" class="wire"/>
+        <line x1="405" y1="96" x2="405" y2="124" class="wire"/>
+        <line x1="405" y1="110" x2="445" y2="110" class="wire"/>
+        <text x="400" y="86" class="lbl" text-anchor="middle">C_f</text>
+        <text x="400" y="73" class="val" text-anchor="middle" id="c5-cf-txt">0.1 µF</text>
+        <line x1="445" y1="110" x2="500" y2="110" class="wire"/>
+        <line x1="500" y1="110" x2="500" y2="230" class="wire"/>
+        <line x1="300" y1="140" x2="300" y2="70" class="wire"/>
+        <line x1="300" y1="70" x2="355" y2="70" class="wire"/>
+        <line x1="355" y1="70" x2="370" y2="70" class="wire"/>
+        <polyline points="370,70 380,61 390,79 400,61 410,79 420,61 430,70" class="wire"/>
+        <line x1="430" y1="70" x2="530" y2="70" class="wire"/>
+        <text x="400" y="54" class="lbl" text-anchor="middle">Bleed R</text>
+        <text x="400" y="41" class="val" text-anchor="middle">1 MΩ</text>
+        <line x1="530" y1="70" x2="530" y2="230" class="wire"/>
+        <circle cx="530" cy="230" r="3" fill="var(--text)"/>
+        <line x1="380" y1="265" x2="380" y2="350" class="wire"/>
+        <line x1="380" y1="350" x2="380" y2="358" class="gnd"/>
+        <line x1="368" y1="358" x2="392" y2="358" class="gnd"/>
+        <line x1="372" y1="364" x2="388" y2="364" class="gnd"/>
+        <line x1="376" y1="370" x2="384" y2="370" class="gnd"/>
+        <polygon points="380,170 380,290 500,230" class="opamp-fill"/>
+        <text x="392" y="200" font-weight="bold" font-size="16">−</text>
+        <text x="392" y="270" font-weight="bold" font-size="16">+</text>
+        <line x1="420" y1="120" x2="420" y2="190" class="wire"/>
+        <text x="426" y="145" class="lbl">V+</text>
+        <text x="392" y="108" class="val">+12 V</text>
+        <line x1="420" y1="340" x2="420" y2="270" class="wire"/>
+        <text x="426" y="315" class="lbl">V−</text>
+        <text x="392" y="358" class="val">−12 V</text>
+        <line x1="500" y1="230" x2="530" y2="230" class="wire"/>
+        <line x1="530" y1="230" x2="600" y2="230" class="wire"/>
+        <circle cx="600" cy="230" r="4" class="term"/>
+        <text x="612" y="234" font-weight="bold" class="lbl">Vout</text>
+      </svg>
+    </div>
+    <div><div class="calc-box" id="calc-c5"></div></div>
+  </div>
+  <div class="steps-box" id="steps-c5"></div>
+  <div class="quiz-box" id="quiz-c5"></div>
+</section>
+
+<!-- ============ PANEL 6: DIFFERENTIATOR ============ -->
+<section class="panel" id="panel-c6" data-cid="c6">
+  <h2 class="ctitle">6 · Differentiator</h2>
+  <span class="pill">C_in at input</span><span class="pill">Series R = 1 kΩ (noise tamer)</span><span class="pill">Triangle → square</span>
+  <div class="two-col">
+    <div>
+      <svg class="schem" viewBox="0 0 760 460" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="80" cy="195" r="22" class="wire"/>
+        <path d="M68,203 L80,187 L92,203" class="wire"/>
+        <text x="80" y="234" class="lbl" text-anchor="middle">Vin</text>
+        <text x="80" y="248" class="note-line" text-anchor="middle">triangle wave, 1 Vpp, 500 Hz</text>
+        <line x1="102" y1="195" x2="115" y2="195" class="wire"/>
+        <line x1="115" y1="195" x2="130" y2="195" class="wire"/>
+        <polyline points="130,195 140,186 150,204 160,186 170,204 180,186 190,195" class="wire"/>
+        <line x1="190" y1="195" x2="205" y2="195" class="wire"/>
+        <text x="160" y="176" class="lbl" text-anchor="middle">R</text>
+        <text x="160" y="163" class="val" text-anchor="middle">1 kΩ</text>
+        <line x1="205" y1="195" x2="215" y2="195" class="wire"/>
+        <line x1="235" y1="181" x2="235" y2="209" class="wire"/>
+        <line x1="245" y1="181" x2="245" y2="209" class="wire"/>
+        <line x1="215" y1="195" x2="235" y2="195" class="wire"/>
+        <line x1="245" y1="195" x2="265" y2="195" class="wire"/>
+        <text x="240" y="176" class="lbl" text-anchor="middle">C_in</text>
+        <text x="240" y="163" class="val" text-anchor="middle" id="c6-cin-txt">0.1 µF</text>
+        <line x1="265" y1="195" x2="320" y2="195" class="wire"/>
+        <circle cx="320" cy="195" r="3" fill="var(--text)"/>
+        <line x1="320" y1="195" x2="380" y2="195" class="wire"/>
+        <line x1="320" y1="195" x2="320" y2="110" class="wire"/>
+        <line x1="320" y1="110" x2="355" y2="110" class="wire"/>
+        <line x1="355" y1="110" x2="370" y2="110" class="wire"/>
+        <polyline points="370,110 380,101 390,119 400,101 410,119 420,101 430,110" class="wire"/>
+        <line x1="430" y1="110" x2="445" y2="110" class="wire"/>
+        <text x="400" y="94" class="lbl" text-anchor="middle">R_f</text>
+        <text x="400" y="81" class="val" text-anchor="middle" id="c6-rf-txt">10 kΩ</text>
+        <line x1="445" y1="110" x2="500" y2="110" class="wire"/>
+        <line x1="500" y1="110" x2="500" y2="230" class="wire"/>
+        <line x1="380" y1="265" x2="380" y2="350" class="wire"/>
+        <line x1="380" y1="350" x2="380" y2="358" class="gnd"/>
+        <line x1="368" y1="358" x2="392" y2="358" class="gnd"/>
+        <line x1="372" y1="364" x2="388" y2="364" class="gnd"/>
+        <line x1="376" y1="370" x2="384" y2="370" class="gnd"/>
+        <polygon points="380,170 380,290 500,230" class="opamp-fill"/>
+        <text x="392" y="200" font-weight="bold" font-size="16">−</text>
+        <text x="392" y="270" font-weight="bold" font-size="16">+</text>
+        <line x1="420" y1="120" x2="420" y2="190" class="wire"/>
+        <text x="426" y="145" class="lbl">V+</text>
+        <text x="392" y="108" class="val">+12 V</text>
+        <line x1="420" y1="340" x2="420" y2="270" class="wire"/>
+        <text x="426" y="315" class="lbl">V−</text>
+        <text x="392" y="358" class="val">−12 V</text>
+        <line x1="500" y1="230" x2="560" y2="230" class="wire"/>
+        <line x1="560" y1="230" x2="600" y2="230" class="wire"/>
+        <circle cx="600" cy="230" r="4" class="term"/>
+        <text x="612" y="234" font-weight="bold" class="lbl">Vout</text>
+      </svg>
+    </div>
+    <div><div class="calc-box" id="calc-c6"></div></div>
+  </div>
+  <div class="steps-box" id="steps-c6"></div>
+  <div class="quiz-box" id="quiz-c6"></div>
+</section>
+
+</div>
+
+<footer>
+  ELT 102 · Digital Logic &amp; Solid State Devices · Lesson 4 Companion: Op-Amp Interactive Lab Studio<br>
+  © 2026 ELT 102 Course Materials.
+</footer>
+
+<script>
+const STORAGE_KEY = 'elt102-opamp-studio-v1';
+
+const circuitsData = {
+  c1: {
+    calcType:'invGain', defaults:{rf:100, rin:10},
+    steps:[
+      'Place Op Amp (741/LM358) straddling the breadboard center gap',
+      'Wire signal generator → R_in → (−) input',
+      'Wire R_f from (−) input to OUT (feedback path)',
+      'Tie (+) input directly to ground',
+      'Connect V+ to +12 V rail and V− to −12 V rail',
+      'Probe Ch.1 on the input node, Ch.2 on OUT with the oscilloscope'
+    ],
+    quiz:{
+      q:'With R_f = 100 kΩ and R_in = 10 kΩ, a 0.5 V sine input produces an output of about:',
+      options:['+5 V, in phase','−5 V, inverted','+0.5 V, unchanged','−0.05 V, inverted'],
+      correct:1,
+      explain:'A_V = −R_f/R_in = −10, so 0.5 V × (−10) = −5 V, inverted 180°.'
+    }
+  },
+  c2: {
+    calcType:'noninvGain', defaults:{rf:90, rin:10},
+    steps:[
+      'Place Op Amp on the breadboard',
+      'Wire signal generator directly to (+) input — no series resistor',
+      'Wire R_in from (−) input to ground',
+      'Wire R_f from (−) input to OUT (feedback divider)',
+      'Connect dual ±12 V supply to V+/V−',
+      'Probe the input and OUT with the oscilloscope'
+    ],
+    quiz:{
+      q:'The same resistor pair gives a different gain here than in the inverting amp because:',
+      options:['The formula always adds 1 to the resistor ratio','Non-inverting amps use different resistors','The op-amp itself has more gain in this configuration','Feedback percentage is lower'],
+      correct:0,
+      explain:"A_V = 1 + R_f/R_in — the \"+1\" comes from the signal driving (+) directly while the divider only sets how much feedback returns."
+    }
+  },
+  c3: {
+    calcType:'follower',
+    steps:[
+      'Place Op Amp on the breadboard',
+      'Wire signal generator directly to (+) input',
+      'Wire OUT directly to (−) input — the entire feedback path',
+      'Connect dual ±12 V supply',
+      '(Optional) add a 330 Ω resistor + LED from OUT to ground as a load',
+      'Compare OUT to the input on the oscilloscope — traces should overlap exactly'
+    ],
+    quiz:{
+      q:'The voltage follower has a gain of exactly 1. Its practical purpose is to:',
+      options:['Amplify weak signals','Invert the input signal','Transform impedance — buffer a weak source from a heavy load','Generate a square wave'],
+      correct:2,
+      explain:'Huge input impedance and near-zero output impedance make it a perfect buffer, just like the Lesson 3 emitter follower.'
+    }
+  },
+  c4: {
+    calcType:'comparator', defaults:{vin:3, vref:0},
+    steps:[
+      'Place Op Amp on the breadboard',
+      'Wire a 10 kΩ potentiometer between +12 V and −12 V; wiper → (−) input (sets V_REF)',
+      'Wire signal generator directly to (+) input',
+      'Leave no connection between OUT and either input — no feedback',
+      'Wire OUT → 330 Ω resistor → LED → ground',
+      'Sweep the potentiometer and watch the LED switch on/off at the threshold'
+    ],
+    quiz:{
+      q:'A comparator has no negative feedback. When Vin exceeds V_REF, the output:',
+      options:['Rises smoothly following the gain equation','Slams to +V_sat because open-loop gain is enormous','Stays at 0 V','Oscillates'],
+      correct:1,
+      explain:'Without feedback, the raw open-loop gain (100,000+) instantly drives the output to a rail whenever Vin > V_REF.'
+    }
+  },
+  c5: {
+    calcType:'rc', rName:'R_in', rUnit:'kΩ', cName:'C_f', defaults:{r:10, c:0.1},
+    steps:[
+      'Place Op Amp on the breadboard',
+      'Wire signal generator → R_in → (−) input',
+      'Wire C_f from (−) input to OUT',
+      'Add a 1 MΩ bleed resistor in parallel with C_f',
+      'Tie (+) input to ground; connect ±12 V supply',
+      'Drive a square wave and watch OUT on the oscilloscope'
+    ],
+    quiz:{
+      q:'Feeding a square wave into the integrator produces:',
+      options:['A square wave, delayed','A triangle wave','A sine wave','A DC level only'],
+      correct:1,
+      explain:'A constant input charges C_f at a constant rate — a linear ramp — flipping direction each half-cycle, producing a triangle wave.'
+    }
+  },
+  c6: {
+    calcType:'rc', rName:'R_f', rUnit:'kΩ', cName:'C_in', defaults:{r:10, c:0.1},
+    steps:[
+      'Place Op Amp on the breadboard',
+      'Wire signal generator → small 1 kΩ series resistor → C_in → (−) input',
+      'Wire R_f from (−) input to OUT',
+      'Tie (+) input to ground; connect ±12 V supply',
+      'Drive a triangle wave and watch OUT — expect a square wave',
+      'Switch to a square wave input and observe sharp edge spikes on OUT'
+    ],
+    quiz:{
+      q:"The differentiator's output is proportional to the input's:",
+      options:['Amplitude','Rate of change (slope)','Frequency only','DC offset'],
+      correct:1,
+      explain:'Vout = −R_f·C_in · dVin/dt — current only flows through C_in when the input is changing, so output tracks slope.'
+    }
+  }
+};
+
+function loadState(){
+  try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+  catch(e){ return {}; }
+}
+function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+let state = loadState();
+
+function ensureCidState(cid){
+  if(!state[cid]){
+    state[cid] = { steps: new Array(circuitsData[cid].steps.length).fill(false), quizSelected:null, quizCorrect:false };
+  }
+  return state[cid];
+}
+
+function calcHTML(cid,data){
+  if(data.calcType==='invGain' || data.calcType==='noninvGain'){
+    return `<h3>📐 Live Gain Calculator</h3>
+      <label>R_f (kΩ): <input type="number" id="in-rf-${cid}" value="${data.defaults.rf}" min="1" step="1"></label>
+      <label>R_in (kΩ): <input type="number" id="in-rin-${cid}" value="${data.defaults.rin}" min="1" step="1"></label>
+      <p class="calcout" id="out-${cid}"></p>`;
+  }
+  if(data.calcType==='follower'){
+    return `<h3>📐 Gain</h3><p class="calcout">A_V = 1 exactly — no resistors to adjust. Try the schematic's optional LED load to feel why buffering matters.</p>`;
+  }
+  if(data.calcType==='comparator'){
+    return `<h3>📐 Live Comparator</h3>
+      <label>V_in (V): <input type="range" id="in-vin-${cid}" min="-10" max="10" step="0.5" value="${data.defaults.vin}"> <span id="vin-readout-${cid}"></span></label>
+      <label>V_REF (V): <input type="range" id="in-vref-${cid}" min="-10" max="10" step="0.5" value="${data.defaults.vref}"> <span id="vref-readout-${cid}"></span></label>
+      <p class="calcout" id="out-${cid}"></p>`;
+  }
+  if(data.calcType==='rc'){
+    return `<h3>📐 Live Time-Constant Calculator</h3>
+      <label>${data.rName} (${data.rUnit}): <input type="number" id="in-r-${cid}" value="${data.defaults.r}" min="0.1" step="0.1"></label>
+      <label>${data.cName} (µF): <input type="number" id="in-c-${cid}" value="${data.defaults.c}" min="0.001" step="0.01"></label>
+      <p class="calcout" id="out-${cid}"></p>`;
+  }
+  return '';
+}
+
+function bindCalc(cid,data){
+  const t = data.calcType;
+  if(t==='invGain' || t==='noninvGain'){
+    document.getElementById('in-rf-'+cid).addEventListener('input', ()=>updateCalc(cid,data));
+    document.getElementById('in-rin-'+cid).addEventListener('input', ()=>updateCalc(cid,data));
+  } else if(t==='comparator'){
+    document.getElementById('in-vin-'+cid).addEventListener('input', ()=>updateCalc(cid,data));
+    document.getElementById('in-vref-'+cid).addEventListener('input', ()=>updateCalc(cid,data));
+  } else if(t==='rc'){
+    document.getElementById('in-r-'+cid).addEventListener('input', ()=>updateCalc(cid,data));
+    document.getElementById('in-c-'+cid).addEventListener('input', ()=>updateCalc(cid,data));
+  }
+}
+
+function setTxt(id, val){ const el = document.getElementById(id); if(el) el.textContent = val; }
+
+function updateCalc(cid,data){
+  const t = data.calcType;
+  if(t==='invGain'){
+    const rf = +document.getElementById('in-rf-'+cid).value;
+    const rin = +document.getElementById('in-rin-'+cid).value;
+    const gain = rin ? -(rf/rin) : 0;
+    document.getElementById('out-'+cid).innerHTML = `A_V = −R_f/R_in = −${rf}/${rin} = <strong>${gain.toFixed(2)}</strong>`;
+    setTxt(cid+'-rf-txt', rf+' kΩ');
+    setTxt(cid+'-rin-txt', rin+' kΩ');
+  } else if(t==='noninvGain'){
+    const rf = +document.getElementById('in-rf-'+cid).value;
+    const rin = +document.getElementById('in-rin-'+cid).value;
+    const gain = rin ? 1 + (rf/rin) : 1;
+    document.getElementById('out-'+cid).innerHTML = `A_V = 1 + R_f/R_in = 1 + ${rf}/${rin} = <strong>+${gain.toFixed(2)}</strong>`;
+    setTxt(cid+'-rf-txt', rf+' kΩ');
+    setTxt(cid+'-rin-txt', rin+' kΩ');
+  } else if(t==='comparator'){
+    const vin = +document.getElementById('in-vin-'+cid).value;
+    const vref = +document.getElementById('in-vref-'+cid).value;
+    setTxt('vin-readout-'+cid, vin.toFixed(1)+' V');
+    setTxt('vref-readout-'+cid, vref.toFixed(1)+' V');
+    setTxt(cid+'-vin-txt', vin.toFixed(1)+' V');
+    setTxt(cid+'-vref-txt', 'V_REF = '+vref.toFixed(1)+' V');
+    const lit = vin > vref;
+    document.getElementById('out-'+cid).innerHTML = lit
+      ? `Vin (${vin.toFixed(1)}V) &gt; V_REF (${vref.toFixed(1)}V) → Vout = <strong>+V_sat (≈ +11 V)</strong> — LED ON`
+      : `Vin (${vin.toFixed(1)}V) &lt; V_REF (${vref.toFixed(1)}V) → Vout = <strong>−V_sat (≈ −11 V)</strong> — LED OFF`;
+    const led = document.getElementById(cid+'-led');
+    if(led){ if(lit) led.classList.add('lit'); else led.classList.remove('lit'); }
+  } else if(t==='rc'){
+    const r = +document.getElementById('in-r-'+cid).value;
+    const c = +document.getElementById('in-c-'+cid).value;
+    const tauMs = r * c; // kΩ × µF = ms
+    document.getElementById('out-'+cid).innerHTML = `τ = ${data.rName}×${data.cName} = ${r} kΩ × ${c} µF = <strong>${tauMs.toFixed(2)} ms</strong> — bigger τ means a slower ramp / lower corner frequency`;
+    if(cid==='c5'){ setTxt('c5-rin-txt', r+' kΩ'); setTxt('c5-cf-txt', c+' µF'); }
+    if(cid==='c6'){ setTxt('c6-rf-txt', r+' kΩ'); setTxt('c6-cin-txt', c+' µF'); }
+  }
+}
+
+function updateStepCount(cid){
+  const st = state[cid];
+  const n = st.steps.filter(Boolean).length;
+  const total = circuitsData[cid].steps.length;
+  const el = document.getElementById('stepcount-'+cid);
+  if(el) el.textContent = `${n} / ${total} steps complete`;
+}
+
+function answerQuiz(cid, idx){
+  const st = state[cid];
+  const data = circuitsData[cid];
+  st.quizSelected = idx;
+  st.quizCorrect = (idx === data.quiz.correct);
+  saveState();
+  showQuizFeedback(cid);
+  checkComplete(cid);
+}
+
+function showQuizFeedback(cid){
+  const st = state[cid];
+  const data = circuitsData[cid];
+  const box = document.getElementById('qfeedback-'+cid);
+  const opts = document.querySelectorAll(`.qopt[data-cid="${cid}"]`);
+  opts.forEach((b)=>{
+    const i = +b.dataset.idx;
+    b.classList.remove('correct','incorrect');
+    if(i===data.quiz.correct) b.classList.add('correct');
+    else if(i===st.quizSelected) b.classList.add('incorrect');
+  });
+  box.innerHTML = (st.quizCorrect ? '<strong>✅ Correct.</strong> ' : '<strong>Not quite.</strong> ') + data.quiz.explain;
+}
+
+function checkComplete(cid){
+  const st = state[cid];
+  const allSteps = st.steps.every(Boolean);
+  const done = allSteps && st.quizCorrect;
+  const tabBtn = document.querySelector(`.tab-btn[data-target="panel-${cid}"] .check`);
+  if(tabBtn) tabBtn.style.display = done ? 'inline' : 'none';
+  saveState();
+  updateProgress();
+}
+
+function updateProgress(){
+  const ids = Object.keys(circuitsData);
+  const done = ids.filter(cid=>{
+    const st = ensureCidState(cid);
+    return st.steps.every(Boolean) && st.quizCorrect;
+  }).length;
+  document.getElementById('progressFill').style.width = (done/ids.length*100)+'%';
+  document.getElementById('progressText').textContent = `${done} / ${ids.length} circuits completed`;
+}
+
+function renderPanel(cid){
+  const data = circuitsData[cid];
+  const st = ensureCidState(cid);
+
+  const calcBox = document.getElementById('calc-'+cid);
+  calcBox.innerHTML = calcHTML(cid,data);
+  bindCalc(cid,data);
+  updateCalc(cid,data);
+  if(data.calcType==='comparator'){
+    const led = document.getElementById(cid+'-led');
+    // initial state already set by updateCalc
+  }
+
+  const stepsBox = document.getElementById('steps-'+cid);
+  stepsBox.innerHTML = '<h3>🔧 Tinkercad Build Steps</h3><ul class="steplist">' +
+    data.steps.map((s,i)=>`<li><label><input type="checkbox" data-cid="${cid}" data-idx="${i}" ${st.steps[i] ? 'checked' : ''}> ${s}</label></li>`).join('') +
+    `</ul><div class="stepcount" id="stepcount-${cid}"></div>`;
+  stepsBox.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.addEventListener('change', e=>{
+      const c = e.target.dataset.cid, idx = +e.target.dataset.idx;
+      state[c].steps[idx] = e.target.checked;
+      saveState();
+      updateStepCount(c);
+      checkComplete(c);
+    });
+  });
+  updateStepCount(cid);
+
+  const quizBox = document.getElementById('quiz-'+cid);
+  quizBox.innerHTML = '<h3>🎯 Predict the Output</h3><p class="qtext">' + data.quiz.q + '</p><div class="qoptions">' +
+    data.quiz.options.map((o,i)=>`<button class="qopt" data-cid="${cid}" data-idx="${i}">${o}</button>`).join('') +
+    `</div><div class="qfeedback" id="qfeedback-${cid}"></div>`;
+  quizBox.querySelectorAll('.qopt').forEach(btn=>{
+    btn.addEventListener('click', e=>{ answerQuiz(cid, +e.currentTarget.dataset.idx); });
+  });
+  if(st.quizSelected !== null){ showQuizFeedback(cid); }
+
+  checkComplete(cid);
+}
+
+function renderAll(){
+  Object.keys(circuitsData).forEach(renderPanel);
+  updateProgress();
+}
+
+function switchTab(target){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active', p.id===target));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.target===target));
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>switchTab(btn.dataset.target));
+});
+
+function toggleTheme(){
+  const html = document.documentElement;
+  const cur = html.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('elt102-theme', next);
+}
+(function(){
+  const saved = localStorage.getItem('elt102-theme');
+  if(saved){ document.documentElement.setAttribute('data-theme', saved); }
+})();
+
+renderAll();
+switchTab('panel-c1');
+</script>
+</body>
+</html>
