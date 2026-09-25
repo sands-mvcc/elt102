@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
@@ -200,6 +201,18 @@
   }
   .lab-line { margin-top: 6px; font-size: 0.8rem; color: var(--muted); }
   .lab-line strong { color: var(--accent); }
+  .opt-tag { font-size: 0.7rem; font-weight: 600; color: var(--muted); margin-left: 8px; letter-spacing: .2px; }
+  .persona-list { display: flex; flex-direction: column; gap: 8px; }
+  .persona-row {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px;
+    cursor: pointer; transition: background .15s, border-color .15s;
+  }
+  .persona-row:hover { background: var(--accent-soft); }
+  .persona-row.is-checked { border-color: var(--accent); background: var(--accent-soft); }
+  .persona-row input { margin-top: 3px; width: 16px; height: 16px; flex-shrink: 0; accent-color: var(--accent); }
+  .persona-row .txt strong { display: block; font-size: 0.88rem; }
+  .persona-row .txt span { display: block; font-size: 0.8rem; color: var(--muted); line-height: 1.4; }
 </style>
 </head>
 <body>
@@ -442,9 +455,24 @@
   </div>
 </details>
 
-<!-- 7. TARGET MODEL -->
+<!-- 7. AI DESIGN TEAM -->
 <details class="card" open>
-  <summary><span class="num">7</span> Target Model <span class="chev">▾</span></summary>
+  <summary><span class="num">7</span> Assemble Your AI Design Team <span class="opt-tag">Optional — all 5 recommended</span> <span class="chev">▾</span></summary>
+  <div class="card-body">
+<p class="hint" style="margin:0 0 12px;">These roles tell the AI which expert lens to build with. Keep all 5 on for the most polished result.</p>
+<div class="persona-list" id="personaList">
+  <label class="persona-row is-checked"><input type="checkbox" data-group="persona" value="Electronics Technology SME" checked><span class="txt"><strong>Electronics Technology SME</strong><span>Checks circuit behavior, component values, formulas, and part numbers for technical accuracy</span></span></label>
+  <label class="persona-row is-checked"><input type="checkbox" data-group="persona" value="Instructional Designer" checked><span class="txt"><strong>Instructional Designer</strong><span>Aligns the activity to the lesson objectives, course SLOs, and Bloom&#x27;s taxonomy</span></span></label>
+  <label class="persona-row is-checked"><input type="checkbox" data-group="persona" value="Electronics Lab Instructor" checked><span class="txt"><strong>Electronics Lab Instructor</strong><span>Plans realistic parts, timing, bench workflow, and troubleshooting checkpoints</span></span></label>
+  <label class="persona-row is-checked"><input type="checkbox" data-group="persona" value="Lab Safety Coordinator" checked><span class="txt"><strong>Lab Safety Coordinator</strong><span>Enforces safe voltages, ESD handling, equipment use, and lab safety procedures</span></span></label>
+  <label class="persona-row is-checked"><input type="checkbox" data-group="persona" value="Assessment Specialist" checked><span class="txt"><strong>Assessment Specialist</strong><span>Designs deliverables, rubrics, and calculated-vs-measured checks that show mastery</span></span></label>
+</div>
+  </div>
+</details>
+
+<!-- 8. TARGET MODEL -->
+<details class="card" open>
+  <summary><span class="num">8</span> Target Model <span class="chev">▾</span></summary>
   <div class="card-body">
 <div class="field">
   <label for="targetModel">Generate this prompt for</label>
@@ -753,6 +781,8 @@ const MODEL_INTROS = {
   "Gemini": "Create an educational electronics activity based on these specifications:",
   "Perplexity": "Produce an electronics instructional activity following these specifications:"
 };
+const TEAM_FOCUS = "technical accuracy, learning alignment, realistic lab workflow, safety, and assessment";
+const TEAM_FALLBACK = "Act as an expert electronics lab instructor and instructional designer.";
 
 // ---- Tool-specific prompt sections ----
 function buildSections(lines) {
@@ -842,6 +872,17 @@ function buildPrompt() {
   const lines = [];
 
   lines.push(MODEL_INTROS[model] || MODEL_INTROS.Claude);
+  lines.push('');
+
+  const personas = checkedValues('persona');
+  document.querySelectorAll('.persona-row').forEach(r => r.classList.toggle('is-checked', r.querySelector('input').checked));
+  lines.push('AI DESIGN TEAM');
+  if (personas.length) {
+    lines.push(`- Act as a coordinated team combining the expertise of: ${personas.join(', ')}.`);
+    lines.push(`- Each persona should shape the parts of the ${NOUN} that match their expertise (${TEAM_FOCUS}).`);
+  } else {
+    lines.push(`- ${TEAM_FALLBACK}`);
+  }
   lines.push('');
 
   lines.push('CONTENT');
