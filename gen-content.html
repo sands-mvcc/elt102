@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Generate Instructional Content — ELT 102 Prompt Builder</title>
+<title>Generate Instructional Case Studies — ELT 102 Prompt Builder</title>
 <style>
   :root[data-theme="light"] {
     --bg: #f7f8fa;
@@ -200,6 +201,18 @@
   }
   .lab-line { margin-top: 6px; font-size: 0.8rem; color: var(--muted); }
   .lab-line strong { color: var(--accent); }
+  .opt-tag { font-size: 0.7rem; font-weight: 600; color: var(--muted); margin-left: 8px; letter-spacing: .2px; }
+  .persona-list { display: flex; flex-direction: column; gap: 8px; }
+  .persona-row {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px;
+    cursor: pointer; transition: background .15s, border-color .15s;
+  }
+  .persona-row:hover { background: var(--accent-soft); }
+  .persona-row.is-checked { border-color: var(--accent); background: var(--accent-soft); }
+  .persona-row input { margin-top: 3px; width: 16px; height: 16px; flex-shrink: 0; accent-color: var(--accent); }
+  .persona-row .txt strong { display: block; font-size: 0.88rem; }
+  .persona-row .txt span { display: block; font-size: 0.8rem; color: var(--muted); line-height: 1.4; }
 </style>
 </head>
 <body>
@@ -208,10 +221,10 @@
   <header class="page-head">
     <div>
       <a class="breadcrumb" href="index.html">← ELT 102 Course Home</a>
-      <h1>📝 Generate Instructional Content</h1>
-      <p class="subtitle"><span class="course-badge">ELT 102</span>Build a precise, ready-to-paste prompt for generating lesson-ready explanations, circuit-operation
-        walk-throughs, pre-lab readings, and instructor talking points — scoped to any ELT 102 lesson — then
-        hand it to Claude, ChatGPT, Gemini, or Perplexity to draft the text.</p>
+      <h1>📚 Generate Instructional Case Studies</h1>
+      <p class="subtitle"><span class="course-badge">ELT 102</span>Build a precise, ready-to-paste prompt for generating scenario-based case studies — field-service
+        troubleshooting calls, product design decisions, and documented real-world component failures, or fully
+        fictional scenarios — scoped to any ELT 102 lesson, then hand it to Claude, ChatGPT, Gemini, or Perplexity to draft it.</p>
     </div>
     <button class="theme-toggle" id="themeToggle" type="button">🌙 Dark</button>
   </header>
@@ -258,7 +271,7 @@
   <div class="lab-line"><strong>Companion lab:</strong> <span id="labText"></span></div>
 </div>
 <fieldset class="field">
-  <legend>Learning Objective(s) to Cover</legend>
+  <legend>Learning Objective(s) to Anchor</legend>
   <div class="check-grid" id="objectivesGrid"></div>
   <div class="hint">Objectives update automatically based on the selected lesson. Check one or more.</div>
 </fieldset>
@@ -272,143 +285,92 @@
   </div>
 </details>
 
-<!-- 2. CONTENT TYPE -->
+<!-- 2. CASE STUDY BASIS -->
 <details class="card" open>
-  <summary><span class="num">2</span> Content Type <span class="chev">▾</span></summary>
+  <summary><span class="num">2</span> Case Study Basis <span class="chev">▾</span></summary>
   <div class="card-body">
 <div class="field">
-  <label for="contentType">Content Type</label>
-  <select id="contentType">
+  <label for="caseBasis">Case Study Basis</label>
+  <select id="caseBasis">
     <option>Let the model choose based on content</option>
-    <option selected>Full lesson narrative / explanation *</option>
-    <option>Concept explainer (single subtopic deep-dive, e.g., the depletion region)</option>
-    <option>Instructor talking points / lecture script</option>
-    <option>Circuit-operation walk-through (&quot;follow the current / follow the signal&quot;)</option>
-    <option>Analogy-based framing narrative (water flow, valves, gates, light switches)</option>
-    <option>Pre-lab briefing / reading (prepares students for the companion lab)</option>
-    <option>Theory-to-lab bridge (connects lecture concepts to bench measurements)</option>
-    <option>Troubleshooting narrative (symptom → measurement → cause → fix)</option>
-    <option>Career &amp; industry connection narrative (where technicians use this)</option>
-    <option>Recap &amp; synthesis summary</option>
-    <option>Student-facing reading (textbook-style handout copy)</option>
+    <option selected>Field-service / technician troubleshooting scenario *</option>
+    <option>Product design decision scenario (engineering team selects components or topology)</option>
+    <option>Manufacturing / quality-control failure investigation</option>
+    <option>Modeled on a documented real-world electronics failure or recall</option>
+    <option>Fully fictional composite scenario</option>
   </select>
+</div>
+<div class="row2">
+<div class="field">
+  <label for="industry">Industry / Setting</label>
+  <select id="industry">
+    <option>Let the model choose</option>
+    <option selected>Industrial automation &amp; motor controls *</option>
+    <option>Consumer electronics repair</option>
+    <option>Automotive / EV electronics</option>
+    <option>Power supplies &amp; renewable energy</option>
+    <option>Telecommunications &amp; networking hardware</option>
+    <option>Medical devices</option>
+    <option>HVAC &amp; building controls</option>
+    <option>Audio / music equipment</option>
+  </select>
+</div>
+<div class="field">
+  <label for="realIncident">Real Incident to Model After <span style="font-weight:400;">(optional)</span></label>
+  <input type="text" id="realIncident" placeholder="e.g., the &#x27;capacitor plague&#x27; (early 2000s), Pentium FDIV bug (1994)">
+</div>
 </div>
   </div>
 </details>
 
-<!-- 3. STYLE & VOICE -->
+<!-- 3. CASE STUDY DESIGN -->
 <details class="card" open>
-  <summary><span class="num">3</span> Style &amp; Voice <span class="chev">▾</span></summary>
+  <summary><span class="num">3</span> Case Study Design <span class="chev">▾</span></summary>
   <div class="card-body">
 <div class="row2">
 <div class="field">
-  <label for="voicePerspective">Voice / Perspective</label>
-  <select id="voicePerspective">
-    <option selected>Instructor-facing script (talking points) *</option>
-    <option>Student-facing reading (textbook voice)</option>
-    <option>Narrated video / podcast script style</option>
-    <option>Socratic dialogue (question-driven)</option>
+  <label for="narrativeStructure">Narrative Structure</label>
+  <select id="narrativeStructure">
+    <option selected>Symptom → diagnosis → repair (troubleshooting flow) *</option>
+    <option>Chronological timeline</option>
+    <option>Multiple-perspective (technician, engineer, customer/manager)</option>
+    <option>Decision-point branching (choose-your-own-response)</option>
+    <option>Post-incident retrospective / lessons-learned</option>
   </select>
 </div>
 <div class="field">
-  <label for="tone">Tone</label>
-  <select id="tone">
-    <option>Professional / formal</option>
-    <option selected>Conversational / approachable *</option>
-    <option>Storytelling / narrative-driven</option>
-    <option>Authoritative / technical</option>
+  <label for="caseLength">Length</label>
+  <select id="caseLength">
+    <option selected>Short vignette (~1 page) *</option>
+    <option>Full case study (2–4 pages)</option>
+    <option>Extended multi-part case (spans multiple lessons or the final review)</option>
   </select>
 </div>
-</div>
-<div class="row2">
-<div class="field">
-  <label for="readingLevel">Reading Level</label>
-  <select id="readingLevel">
-    <option>College-level technical</option>
-    <option>Plain-language / accessible</option>
-    <option selected>Mixed — technical terms defined inline *</option>
-    <option>Brief / technician quick-read</option>
-  </select>
 </div>
 <div class="field">
-  <label for="mathLevel">Math Treatment</label>
-  <select id="mathLevel">
-    <option>Conceptual — minimal math</option>
-    <option selected>Algebra-based with worked formulas *</option>
-    <option>Formula-heavy with derivations</option>
+  <label for="technicalDetail">Level of Technical Detail</label>
+  <select id="technicalDetail">
+    <option>High-level / conceptual</option>
+    <option selected>Moderate — includes key measurements and values *</option>
+    <option>Deep technical detail (schematic excerpts, DMM/scope readings, datasheet values)</option>
   </select>
 </div>
-</div>
-<div class="row2">
-<div class="field">
-  <label for="analogyUsage">Analogy Usage</label>
-  <select id="analogyUsage">
-    <option>None — stick to technical language</option>
-    <option selected>Occasional — one or two supporting analogies *</option>
-    <option>Frequent — build the explanation around analogies</option>
-  </select>
-</div>
-<div class="field">
-  <label for="pov">Point of View</label>
-  <select id="pov">
-    <option>Third-person expository</option>
-    <option selected>Second-person direct address (&quot;you&quot;) *</option>
-    <option>First-person instructor voice (&quot;I&quot;)</option>
-  </select>
-</div>
-</div>
-<fieldset class="field">
-<legend>Voice &amp; Delivery Preferences</legend>
-<div class="check-grid">
-  <label class="check-item"><input type="checkbox" data-group="voicePref" value="Use short, classroom-ready sentences" checked>Use short, classroom-ready sentences</label>
-  <label class="check-item"><input type="checkbox" data-group="voicePref" value="Vary sentence length for spoken delivery">Vary sentence length for spoken delivery</label>
-  <label class="check-item"><input type="checkbox" data-group="voicePref" value="Include rhetorical questions to prompt reflection">Include rhetorical questions to prompt reflection</label>
-  <label class="check-item"><input type="checkbox" data-group="voicePref" value="Write in active voice throughout" checked>Write in active voice throughout</label>
-  <label class="check-item"><input type="checkbox" data-group="voicePref" value="Reference what students will see on the DMM or oscilloscope" checked>Reference what students will see on the DMM or oscilloscope</label>
-</div>
-</fieldset>
   </div>
 </details>
 
-<!-- 4. LENGTH & FORMAT -->
+<!-- 4. ANALYSIS COMPONENTS -->
 <details class="card">
-  <summary><span class="num">4</span> Length &amp; Format <span class="chev">▾</span></summary>
+  <summary><span class="num">4</span> Analysis Components <span class="chev">▾</span></summary>
   <div class="card-body">
-<div class="row2">
-<div class="field">
-  <label for="lengthPreset">Length Preset</label>
-  <select id="lengthPreset">
-    <option>Short paragraph (~100–150 words)</option>
-    <option selected>Half page (~250–300 words) *</option>
-    <option>Full page (~500–600 words)</option>
-    <option>Multi-section (1000+ words, multiple subheadings)</option>
-  </select>
-</div>
-<div class="field">
-  <label for="formatType">Format</label>
-  <select id="formatType">
-    <option selected>Continuous prose paragraphs *</option>
-    <option>Bulleted talking points</option>
-    <option>Dialogue / Q&amp;A script</option>
-    <option>Slide script with speaker notes</option>
-    <option>Numbered step-by-step narrative</option>
-  </select>
-</div>
-</div>
-<div class="field">
-  <label for="structureReq">Structure Requirement</label>
-  <select id="structureReq">
-    <option>No specific structure — let the model decide</option>
-    <option selected>Intro — body — conclusion *</option>
-    <option>Chunked by learning objective (one section per objective)</option>
-    <option>Theory — formula — worked number — lab tie-in</option>
-    <option>Hook — concept — analogy — recap</option>
-    <option>Problem — explanation — real-world application</option>
-  </select>
-</div>
-<div class="field">
-  <label for="customLength">Custom Length / Word Count <span style="font-weight:400;">(optional)</span></label>
-  <input type="text" id="customLength" placeholder="e.g., exactly 400 words">
+<div class="check-grid" style="grid-template-columns:1fr;">
+  <label class="check-item"><input type="checkbox" data-group="analysisOption" value="Include discussion questions" checked>Include discussion questions</label>
+  <label class="check-item"><input type="checkbox" data-group="analysisOption" value="Include a root-cause technical breakdown (which component failed and why)" checked>Include a root-cause technical breakdown (which component failed and why)</label>
+  <label class="check-item"><input type="checkbox" data-group="analysisOption" value="Include measurement data (DMM/oscilloscope readings) for students to interpret" checked>Include measurement data (DMM/oscilloscope readings) for students to interpret</label>
+  <label class="check-item"><input type="checkbox" data-group="analysisOption" value="Include calculations students must perform to confirm the diagnosis">Include calculations students must perform to confirm the diagnosis</label>
+  <label class="check-item"><input type="checkbox" data-group="analysisOption" value="Include a &quot;what should have been designed differently&quot; counterfactual">Include a &quot;what should have been designed differently&quot; counterfactual</label>
+  <label class="check-item"><input type="checkbox" data-group="analysisOption" value="Include role-specific reflection prompts (technician vs. engineer vs. manager)">Include role-specific reflection prompts (technician vs. engineer vs. manager)</label>
+  <label class="check-item"><input type="checkbox" data-group="analysisOption" value="Include a repair / remediation plan with a parts list">Include a repair / remediation plan with a parts list</label>
+  <label class="check-item"><input type="checkbox" data-group="analysisOption" value="Connect the scenario to the companion lab exercise">Connect the scenario to the companion lab exercise</label>
 </div>
   </div>
 </details>
@@ -417,42 +379,22 @@
 <details class="card">
   <summary><span class="num">5</span> Output Specifications <span class="chev">▾</span></summary>
   <div class="card-body">
-<div class="row2">
 <div class="field">
   <label for="outputFormat">Output Format</label>
   <select id="outputFormat">
-    <option>Markdown with headers</option>
-    <option selected>Plain text — no formatting *</option>
+    <option selected>Markdown with headers *</option>
+    <option>Plain text narrative</option>
+    <option>Slide-ready summary format</option>
     <option>LMS-ready HTML</option>
-    <option>Slide speaker-notes format</option>
-  </select>
-</div>
-<div class="field">
-  <label for="headingStyle">Heading Style</label>
-  <select id="headingStyle">
-    <option selected>No headings — flowing prose *</option>
-    <option>Section headings matching objectives</option>
-    <option>Numbered sections</option>
-  </select>
-</div>
-</div>
-<div class="field">
-  <label for="equationFormat">Equation Format</label>
-  <select id="equationFormat">
-    <option selected>Plain-text equations (e.g., Vr(pp) = I / (f × C)) *</option>
-    <option>LaTeX equations</option>
-    <option>Unicode math (subscripts/superscripts)</option>
   </select>
 </div>
 <fieldset class="field">
 <legend>Options</legend>
 <div class="check-grid">
-  <label class="check-item"><input type="checkbox" data-group="contentOption" value="Include a one-sentence summary at the top">Include a one-sentence summary at the top</label>
-  <label class="check-item"><input type="checkbox" data-group="contentOption" value="Include a short glossary of key terms used" checked>Include a short glossary of key terms used</label>
-  <label class="check-item"><input type="checkbox" data-group="contentOption" value="Include one check-for-understanding question at the end" checked>Include one check-for-understanding question at the end</label>
-  <label class="check-item"><input type="checkbox" data-group="contentOption" value="Include one short worked numeric example">Include one short worked numeric example</label>
-  <label class="check-item"><input type="checkbox" data-group="contentOption" value="Suggest where a schematic or waveform figure should be inserted">Suggest where a schematic or waveform figure should be inserted</label>
-  <label class="check-item"><input type="checkbox" data-group="contentOption" value="Flag any claim or value the instructor should fact-check before use" checked>Flag any claim or value the instructor should fact-check before use</label>
+  <label class="check-item"><input type="checkbox" data-group="outputOption" value="Include a one-paragraph executive summary at the top" checked>Include a one-paragraph executive summary at the top</label>
+  <label class="check-item"><input type="checkbox" data-group="outputOption" value="Include a timeline or troubleshooting-flow outline">Include a timeline or troubleshooting-flow outline</label>
+  <label class="check-item"><input type="checkbox" data-group="outputOption" value="Include an instructor answer key for the analysis questions" checked>Include an instructor answer key for the analysis questions</label>
+  <label class="check-item"><input type="checkbox" data-group="outputOption" value="Include suggested citations/sources for factual claims about the real incident (if applicable)" checked>Include suggested citations/sources for factual claims about the real incident (if applicable)</label>
 </div>
 </fieldset>
   </div>
@@ -460,24 +402,38 @@
 
 <!-- 6. PEDAGOGICAL CONSTRAINTS -->
 <details class="card">
-  <summary><span class="num">6</span> Pedagogical &amp; Accuracy Constraints <span class="chev">▾</span></summary>
+  <summary><span class="num">6</span> Pedagogical &amp; Safety Constraints <span class="chev">▾</span></summary>
   <div class="card-body">
 <div class="check-grid" style="grid-template-columns:1fr;">
-  <label class="check-item"><input type="checkbox" data-group="pedConstraint" value="Define any acronym or symbol on first use" checked>Define any acronym or symbol on first use</label>
-  <label class="check-item"><input type="checkbox" data-group="pedConstraint" value="Avoid unnecessary jargon; explain technical terms in plain language" checked>Avoid unnecessary jargon; explain technical terms in plain language</label>
-  <label class="check-item"><input type="checkbox" data-group="pedConstraint" value="Show every formula with variables defined, and label all quantities with units and SI prefixes (mA, kΩ, µF, kHz)" checked>Show every formula with variables defined, and label all quantities with units and SI prefixes (mA, kΩ, µF, kHz)</label>
-  <label class="check-item"><input type="checkbox" data-group="pedConstraint" value="Do not invent datasheet specifications or pinouts; use typical published values and flag any figure the instructor should verify against a datasheet" checked>Do not invent datasheet specifications or pinouts; use typical published values and flag any figure the instructor should verify against a datasheet</label>
-  <label class="check-item"><input type="checkbox" data-group="pedConstraint" value="Use notation consistent with the course (e.g., 0.7 V silicon diode drop, r&#x27;e = 25 mV / I_E, I_C = β × I_B)" checked>Use notation consistent with the course (e.g., 0.7 V silicon diode drop, r&#x27;e = 25 mV / I_E, I_C = β × I_B)</label>
-  <label class="check-item"><input type="checkbox" data-group="pedConstraint" value="Include lab safety and ESD handling reminders where relevant (MOSFET/CMOS handling, electrolytic capacitor polarity, discharging capacitors, hot components)" checked>Include lab safety and ESD handling reminders where relevant (MOSFET/CMOS handling, electrolytic capacitor polarity, discharging capacitors, hot components)</label>
-  <label class="check-item"><input type="checkbox" data-group="pedConstraint" value="State the current-flow convention used (conventional current) and apply it consistently">State the current-flow convention used (conventional current) and apply it consistently</label>
-  <label class="check-item"><input type="checkbox" data-group="pedConstraint" value="Match reading level and math complexity to a community college electronics technology audience (algebra-based)">Match reading level and math complexity to a community college electronics technology audience (algebra-based)</label>
+  <label class="check-item"><input type="checkbox" data-group="pedConstraint" value="Anonymize or fictionalize identifying details even when modeled on a real incident, unless explicitly citing public reporting" checked>Anonymize or fictionalize identifying details even when modeled on a real incident, unless explicitly citing public reporting</label>
+  <label class="check-item"><input type="checkbox" data-group="pedConstraint" value="Cite only publicly reported facts when referencing a real incident; do not invent technical details attributed to it" checked>Cite only publicly reported facts when referencing a real incident; do not invent technical details attributed to it</label>
+  <label class="check-item"><input type="checkbox" data-group="pedConstraint" value="Model correct safety practice in the narrative (lockout/tagout, de-energizing and discharging capacitors, ESD protection); never portray unsafe work as acceptable" checked>Model correct safety practice in the narrative (lockout/tagout, de-energizing and discharging capacitors, ESD protection); never portray unsafe work as acceptable</label>
+  <label class="check-item"><input type="checkbox" data-group="pedConstraint" value="Keep measurements, component values, and failure modes technically accurate and plausible" checked>Keep measurements, component values, and failure modes technically accurate and plausible</label>
+  <label class="check-item"><input type="checkbox" data-group="pedConstraint" value="Keep the narrative respectful of any real organizations or individuals involved" checked>Keep the narrative respectful of any real organizations or individuals involved</label>
+  <label class="check-item"><input type="checkbox" data-group="pedConstraint" value="Do not name real companies or products beyond what is already public record for the cited incident">Do not name real companies or products beyond what is already public record for the cited incident</label>
+  <label class="check-item"><input type="checkbox" data-group="pedConstraint" value="Match technical depth to the stated audience skill level">Match technical depth to the stated audience skill level</label>
 </div>
   </div>
 </details>
 
-<!-- 7. TARGET MODEL -->
+<!-- 7. AI DESIGN TEAM -->
 <details class="card" open>
-  <summary><span class="num">7</span> Target Model <span class="chev">▾</span></summary>
+  <summary><span class="num">7</span> Assemble Your AI Design Team <span class="opt-tag">Optional — all 5 recommended</span> <span class="chev">▾</span></summary>
+  <div class="card-body">
+<p class="hint" style="margin:0 0 12px;">These roles tell the AI which expert lens to build with. Keep all 5 on for the most polished result.</p>
+<div class="persona-list" id="personaList">
+  <label class="persona-row is-checked"><input type="checkbox" data-group="persona" value="Electronics Technology SME" checked><span class="txt"><strong>Electronics Technology SME</strong><span>Checks circuit behavior, component values, formulas, and part numbers for technical accuracy</span></span></label>
+  <label class="persona-row is-checked"><input type="checkbox" data-group="persona" value="Instructional Designer" checked><span class="txt"><strong>Instructional Designer</strong><span>Aligns the case to the lesson objectives, course SLOs, and higher-order thinking</span></span></label>
+  <label class="persona-row is-checked"><input type="checkbox" data-group="persona" value="Field Service Technician" checked><span class="txt"><strong>Field Service Technician</strong><span>Supplies a realistic troubleshooting workflow, symptoms, and measurement data</span></span></label>
+  <label class="persona-row is-checked"><input type="checkbox" data-group="persona" value="Quality &amp; Reliability Engineer" checked><span class="txt"><strong>Quality &amp; Reliability Engineer</strong><span>Brings design trade-offs, root-cause analysis, and industry standards</span></span></label>
+  <label class="persona-row is-checked"><input type="checkbox" data-group="persona" value="Assessment Specialist" checked><span class="txt"><strong>Assessment Specialist</strong><span>Writes discussion questions, deliverables, and rubrics that assess analysis and judgment</span></span></label>
+</div>
+  </div>
+</details>
+
+<!-- 8. TARGET MODEL -->
+<details class="card" open>
+  <summary><span class="num">8</span> Target Model <span class="chev">▾</span></summary>
   <div class="card-body">
 <div class="field">
   <label for="targetModel">Generate this prompt for</label>
@@ -510,7 +466,7 @@
           <div class="copy-flash" id="copyFlash" aria-live="polite"></div>
           <div class="safeguard-note">
             Built for ELT 102-350: Digital Logic &amp; Solid State Devices · Moraine Valley Community College.
-            Verify all component values, formulas, and pinouts against datasheets, and review generated content against your department's lab safety and responsible AI use policies before classroom use.
+            Verify all component values, formulas, and pinouts against datasheets, and review generated case studies against your department's lab safety and responsible AI use policies before classroom use.
           </div>
         </div>
       </div>
@@ -777,47 +733,40 @@ const LESSONS = [
   }
 ];
 
-const NOUN = "content";
-const OBJ_VERB = "cover";
-const DOWNLOAD_NAME = "elt102-instructional-content-prompt.txt";
+const NOUN = "case study";
+const OBJ_VERB = "anchor";
+const DOWNLOAD_NAME = "elt102-case-study-prompt.txt";
 const MODEL_INTROS = {
-  "Claude": "You are helping draft classroom instructional content for an electronics course. Generate written content with the following specifications:",
-  "ChatGPT": "Draft electronics classroom instructional content with the following specifications:",
-  "Gemini": "Write educational electronics instructional content based on these specifications:",
-  "Perplexity": "Produce instructional electronics written content following these specifications:"
+  "Claude": "You are helping design a classroom case study for an electronics course. Generate a scenario-based case study with the following specifications:",
+  "ChatGPT": "Design an electronics classroom case study with the following specifications:",
+  "Gemini": "Create an educational electronics case study based on these specifications:",
+  "Perplexity": "Produce an electronics classroom case study following these specifications:"
 };
+const TEAM_FOCUS = "technical accuracy, learning alignment, realistic field practice, engineering analysis, and assessment";
+const TEAM_FALLBACK = "Act as an expert electronics instructor and industry case-study writer.";
 
 // ---- Tool-specific prompt sections ----
 function buildSections(lines) {
 
-  lines.push('CONTENT TYPE');
-  lines.push(`- ${clean('contentType')}`);
+  lines.push('CASE STUDY BASIS');
+  lines.push(`- ${clean('caseBasis')}`);
+  lines.push(`- Industry / setting: ${clean('industry')}`);
+  const ri = val('realIncident').trim();
+  if (ri) lines.push(`- Real incident to model after: ${ri}`);
   lines.push('');
 
-  lines.push('STYLE & VOICE');
-  lines.push(`- Voice / perspective: ${clean('voicePerspective')}`);
-  lines.push(`- Tone: ${clean('tone')}`);
-  lines.push(`- Reading level: ${clean('readingLevel')}`);
-  lines.push(`- Math treatment: ${clean('mathLevel')}`);
-  lines.push(`- Analogy usage: ${clean('analogyUsage')}`);
-  lines.push(`- Point of view: ${clean('pov')}`);
-  const vp = checkedValues('voicePref');
-  if (vp.length) { lines.push('- Voice/delivery preferences:'); vp.forEach(p => lines.push(`  • ${p}`)); }
+  lines.push('CASE STUDY DESIGN');
+  lines.push(`- Narrative structure: ${clean('narrativeStructure')}`);
+  lines.push(`- Length: ${clean('caseLength')}`);
+  lines.push(`- Level of technical detail: ${clean('technicalDetail')}`);
   lines.push('');
 
-  lines.push('LENGTH & FORMAT');
-  lines.push(`- Length: ${clean('lengthPreset')}`);
-  const cl = val('customLength').trim();
-  if (cl) lines.push(`- Custom length: ${cl}`);
-  lines.push(`- Format: ${clean('formatType')}`);
-  lines.push(`- Structure: ${clean('structureReq')}`);
-  lines.push('');
+  const an = checkedValues('analysisOption');
+  if (an.length) { lines.push('ANALYSIS COMPONENTS'); an.forEach(o => lines.push(`- ${o}`)); lines.push(''); }
 
   lines.push('OUTPUT SPECIFICATIONS');
   lines.push(`- Output format: ${clean('outputFormat')}`);
-  lines.push(`- Heading style: ${clean('headingStyle')}`);
-  lines.push(`- Equation format: ${clean('equationFormat')}`);
-  checkedValues('contentOption').forEach(o => lines.push(`- ${o}`));
+  checkedValues('outputOption').forEach(o => lines.push(`- ${o}`));
   lines.push('');
 
 }
@@ -880,6 +829,17 @@ function buildPrompt() {
   const lines = [];
 
   lines.push(MODEL_INTROS[model] || MODEL_INTROS.Claude);
+  lines.push('');
+
+  const personas = checkedValues('persona');
+  document.querySelectorAll('.persona-row').forEach(r => r.classList.toggle('is-checked', r.querySelector('input').checked));
+  lines.push('AI DESIGN TEAM');
+  if (personas.length) {
+    lines.push(`- Act as a coordinated team combining the expertise of: ${personas.join(', ')}.`);
+    lines.push(`- Each persona should shape the parts of the ${NOUN} that match their expertise (${TEAM_FOCUS}).`);
+  } else {
+    lines.push(`- ${TEAM_FALLBACK}`);
+  }
   lines.push('');
 
   lines.push('CONTENT');
