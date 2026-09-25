@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generate Instructional Cheatsheets — ELT 102 Prompt Builder</title>
+<style>
+  :root[data-theme="light"] {
+    --bg: #f7f8fa;
+    --surface: #ffffff;
+    --fg: #1b2430;
+    --muted: #5b6675;
+    --border: #dde2e8;
+    --accent: #2e7d32;
+    --accent-fg: #ffffff;
+    --accent-soft: #e8f5e9;
+    --code-bg: #0f1a12;
+    --code-fg: #d8ecd9;
+    --shadow: 0 1px 2px rgba(20,30,40,0.06), 0 4px 12px rgba(20,30,40,0.05);
+  }
+  :root[data-theme="dark"] {
+    --bg: #121512;
+    --surface: #1b211c;
+    --fg: #e8edf2;
+    --muted: #9aa7b5;
+    --border: #2d3a2f;
+    --accent: #66bb6a;
+    --accent-fg: #0b1f0d;
+    --accent-soft: #17301a;
+    --code-bg: #0a120c;
+    --code-fg: #d6ecd8;
+    --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 6px 16px rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+  }
+  a { color: var(--accent); }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 24px 20px 90px; }
+
+  header.page-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
+  }
+  .breadcrumb { font-size: 0.85rem; color: var(--muted); text-decoration: none; }
+  .breadcrumb:hover { text-decoration: underline; }
+  h1 { font-size: 1.5rem; margin: 6px 0 4px; }
+  .subtitle { color: var(--muted); font-size: 0.95rem; margin: 0 0 4px; max-width: 68ch; }
+  .theme-toggle {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--fg);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 380px); gap: 20px; align-items: start; }
+  @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .card > summary, .card > .card-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 18px;
+    font-weight: 700;
+    cursor: pointer;
+    list-style: none;
+  }
+  .card > summary::-webkit-details-marker { display: none; }
+  .card > summary .num, .card-head .num {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--accent-soft); color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; flex-shrink: 0;
+  }
+  .card-body { padding: 4px 18px 18px; border-top: 1px solid var(--border); }
+  .card[open] .chev { transform: rotate(180deg); }
+  .chev { margin-left: auto; color: var(--muted); transition: transform .15s ease; }
+
+  .field { margin: 14px 0; }
+  .field label, .field legend {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 5px;
+    padding: 0;
+  }
+  .field select, .field input[type="text"], .field input[type="number"] {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: var(--bg);
+    color: var(--fg);
+    font-size: 0.9rem;
+    font-family: inherit;
+  }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 560px) { .row2 { grid-template-columns: 1fr; } }
+  .hint { font-size: 0.78rem; color: var(--muted); margin-top: 4px; }
+
+  .check-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 6px 14px;
+    margin-top: 4px;
+  }
+  .check-item { display: flex; align-items: flex-start; gap: 7px; font-size: 0.86rem; }
+  .check-item input { margin-top: 3px; flex-shrink: 0; }
+
+  .concepts-box {
+    background: var(--accent-soft);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 0.82rem;
+    color: var(--fg);
+    margin-top: 6px;
+    display: none;
+  }
+  .concepts-box.visible { display: block; }
+  .concepts-box strong { display: block; margin-bottom: 4px; }
+
+  fieldset { border: none; padding: 0; margin: 14px 0; }
+
+  .sticky-panel { position: sticky; top: 16px; }
+  .output-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px; font-weight: 700; border-bottom: 1px solid var(--border);
+  }
+  .output-body { padding: 14px 18px; }
+  #promptOutput {
+    width: 100%;
+    min-height: 340px;
+    background: var(--code-bg);
+    color: var(--code-fg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.8rem;
+    line-height: 1.45;
+    resize: vertical;
+  }
+  .btn-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .btn {
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--fg);
+    border-radius: 7px;
+    padding: 8px 12px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    cursor: pointer;
+    flex: 1;
+    min-width: 92px;
+  }
+  .btn.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+  .btn:hover { filter: brightness(0.97); }
+  .copy-flash { color: var(--accent); font-size: 0.8rem; margin-top: 6px; min-height: 1.1em; }
+  .safeguard-note {
+    font-size: 0.78rem;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+    margin-top: 10px;
+  }
+  .course-badge {
+    display: inline-block;
+    background: var(--accent);
+    color: var(--accent-fg);
+    font-family: Georgia, serif;
+    font-weight: 700;
+    font-size: 0.72rem;
+    letter-spacing: .5px;
+    padding: 2px 8px;
+    border-radius: 5px;
+    margin-right: 6px;
+    vertical-align: 2px;
+  }
+  .lab-line { margin-top: 6px; font-size: 0.8rem; color: var(--muted); }
+  .lab-line strong { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page-head">
+    <div>
+      <a class="breadcrumb" href="index.html">← ELT 102 Course Home</a>
+      <h1>📄 Generate Instructional Cheatsheets</h1>
+      <p class="subtitle"><span class="course-badge">ELT 102</span>Build a precise, ready-to-paste prompt for generating quick-reference handouts — formula sheets,
+        schematic symbol and IC pinout references, truth tables, number-system charts, and test-equipment guides —
+        scoped to any ELT 102 lesson, then hand it to Claude, ChatGPT, Gemini, or Perplexity to draft it.</p>
+    </div>
+    <button class="theme-toggle" id="themeToggle" type="button">🌙 Dark</button>
+  </header>
+
+  <div class="layout">
+    <div class="forms">
+
+<!-- 1. CONTENT -->
+<details class="card" open>
+  <summary><span class="num">1</span> Content <span class="chev">▾</span></summary>
+  <div class="card-body">
+<div class="field">
+  <label for="lesson">Lesson</label>
+  <select id="lesson"></select>
+</div>
+<div class="row2">
+<div class="field">
+  <label for="subjectArea">Subject Area / Domain</label>
+  <select id="subjectArea">
+    <option>Semiconductor Fundamentals</option>
+    <option>Active Devices &amp; Amplifiers</option>
+    <option>Logic Fundamentals</option>
+    <option>Digital Systems</option>
+    <option>Cumulative Review</option>
+  </select>
+</div>
+<div class="field">
+  <label for="gradeLevel">Grade / Skill Level</label>
+  <select id="gradeLevel">
+    <option>High School Dual Credit</option>
+    <option selected>Community College / Undergraduate *</option>
+    <option>Adult Workforce / Apprenticeship Training</option>
+    <option>Industry Technician Upskilling</option>
+  </select>
+</div>
+</div>
+<div class="field">
+  <label for="customTopic">Custom Topic / Title Override <span style="font-weight:400;">(optional)</span></label>
+  <input type="text" id="customTopic" placeholder="Leave blank to use the selected lesson title">
+</div>
+<div class="concepts-box" id="conceptsBox">
+  <strong>Major concepts for this lesson (for reference):</strong>
+  <span id="conceptsText"></span>
+  <div class="lab-line"><strong>Companion lab:</strong> <span id="labText"></span></div>
+</div>
+<fieldset class="field">
+  <legend>Learning Objective(s) to Support</legend>
+  <div class="check-grid" id="objectivesGrid"></div>
+  <div class="hint">Objectives update automatically based on the selected lesson. Check one or more.</div>
+</fieldset>
+<fieldset class="field">
+<legend>Course Context</legend>
+<div class="check-grid">
+  <label class="check-item"><input type="checkbox" data-group="contextOpt" value="Reference the companion lab exercise" checked>Reference the companion lab exercise</label>
+  <label class="check-item"><input type="checkbox" data-group="contextOpt" value="List this lesson&#x27;s major concepts in the prompt">List this lesson&#x27;s major concepts in the prompt</label>
+</div>
+</fieldset>
+  </div>
+</details>
+
+<!-- 2. CHEATSHEET TYPE -->
+<details class="card" open>
+  <summary><span class="num">2</span> Cheatsheet Type <span class="chev">▾</span></summary>
+  <div class="card-body">
+<div class="field">
+  <label for="cheatsheetType">Cheatsheet Type</label>
+  <select id="cheatsheetType">
+    <option>Let the model choose based on content</option>
+    <option selected>Formula &amp; equation reference sheet *</option>
+    <option>Schematic symbol reference (symbol, name, terminals, function)</option>
+    <option>IC pinout quick-reference (7400-series, NE555, LM741, 7805)</option>
+    <option>Truth table &amp; Boolean law reference</option>
+    <option>Number-system conversion chart (binary / octal / decimal / hex / BCD)</option>
+    <option>Device comparison table (e.g., BJT vs. JFET vs. MOSFET vs. SCR vs. TRIAC)</option>
+    <option>Resistor color code &amp; standard-value reference</option>
+    <option>Test-equipment quick-reference (DMM, oscilloscope, function generator settings)</option>
+    <option>Troubleshooting checklist / fault-symptom table</option>
+    <option>Terminology &amp; acronym glossary</option>
+    <option>Lab safety &amp; ESD handling reference card</option>
+  </select>
+</div>
+  </div>
+</details>
+
+<!-- 3. FORMAT & LAYOUT -->
+<details class="card" open>
+  <summary><span class="num">3</span> Format &amp; Layout <span class="chev">▾</span></summary>
+  <div class="card-body">
+<div class="row2">
+<div class="field">
+  <label for="layoutStyle">Layout Style</label>
+  <select id="layoutStyle">
+    <option selected>Table / grid *</option>
+    <option>Bulleted reference list</option>
+    <option>Two-column comparison</option>
+    <option>Flowchart / decision tree</option>
+    <option>Formula boxes grouped by topic</option>
+  </select>
+</div>
+<div class="field">
+  <label for="pageSize">Page Size</label>
+  <select id="pageSize">
+    <option selected>Letter, portrait *</option>
+    <option>Letter, landscape</option>
+    <option>Half-page handout</option>
+    <option>Index-card size (exam-allowed note card)</option>
+    <option>Digital-only (no print constraints)</option>
+  </select>
+</div>
+</div>
+<div class="field">
+  <label for="density">Density</label>
+  <select id="density">
+    <option>Minimal — key terms/formulas only</option>
+    <option selected>Moderate — entries + short explanations *</option>
+    <option>Comprehensive — full reference detail</option>
+  </select>
+</div>
+  </div>
+</details>
+
+<!-- 4. CONTENT DEPTH & STYLE -->
+<details class="card">
+  <summary><span class="num">4</span> Content Depth &amp; Style <span class="chev">▾</span></summary>
+  <div class="card-body">
+<div class="row2">
+<div class="field">
+  <label for="detailLevel">Detail Level per Entry</label>
+  <select id="detailLevel">
+    <option selected>One-line definitions / formulas *</option>
+    <option>Short paragraph per entry</option>
+    <option>Include a worked numeric example per entry</option>
+  </select>
+</div>
+<div class="field">
+  <label for="terminologyHandling">Terminology Handling</label>
+  <select id="terminologyHandling">
+    <option selected>Define every symbol, variable, and acronym *</option>
+    <option>Include units and typical value ranges for each quantity</option>
+    <option>Assume basic DC/AC circuit knowledge (Ohm&#x27;s law, Kirchhoff&#x27;s laws)</option>
+  </select>
+</div>
+</div>
+<div class="field">
+  <label for="sortOrder">Sorting / Organization</label>
+  <select id="sortOrder">
+    <option>Alphabetical</option>
+    <option selected>By category / topic *</option>
+    <option>By lesson sequence</option>
+    <option>By signal flow (input → processing → output)</option>
+    <option>By device family</option>
+  </select>
+</div>
+  </div>
+</details>
+
+<!-- 5. OUTPUT SPECIFICATIONS -->
+<details class="card">
+  <summary><span class="num">5</span> Output Specifications <span class="chev">▾</span></summary>
+  <div class="card-body">
+<div class="field">
+  <label for="outputFormat">Output Format</label>
+  <select id="outputFormat">
+    <option selected>Markdown table *</option>
+    <option>Plain text list</option>
+    <option>LMS-ready HTML</option>
+    <option>CSV / spreadsheet-ready</option>
+  </select>
+</div>
+<fieldset class="field">
+<legend>Options</legend>
+<div class="check-grid">
+  <label class="check-item"><input type="checkbox" data-group="cheatOption" value="Include a title/header block with course and lesson" checked>Include a title/header block with course and lesson</label>
+  <label class="check-item"><input type="checkbox" data-group="cheatOption" value="Include a &quot;last updated&quot; / version footer">Include a &quot;last updated&quot; / version footer</label>
+  <label class="check-item"><input type="checkbox" data-group="cheatOption" value="Include source/reference citations (textbook or datasheet) for each entry" checked>Include source/reference citations (textbook or datasheet) for each entry</label>
+  <label class="check-item"><input type="checkbox" data-group="cheatOption" value="Include a &quot;common mistakes&quot; column or callout">Include a &quot;common mistakes&quot; column or callout</label>
+  <label class="check-item"><input type="checkbox" data-group="cheatOption" value="Leave blank space for handwritten notes">Leave blank space for handwritten notes</label>
+</div>
+</fieldset>
+  </div>
+</details>
+
+<!-- 6. PEDAGOGICAL CONSTRAINTS -->
+<details class="card">
+  <summary><span class="num">6</span> Pedagogical &amp; Accuracy Constraints <span class="chev">▾</span></summary>
+  <div class="card-body">
+<div class="check-grid" style="grid-template-columns:1fr;">
+  <label class="check-item"><input type="checkbox" data-group="pedConstraint" value="Keep every formula, truth table, and conversion accurate and verifiable" checked>Keep every formula, truth table, and conversion accurate and verifiable</label>
+  <label class="check-item"><input type="checkbox" data-group="pedConstraint" value="Do not invent datasheet specifications or pinouts; use typical published values and flag any figure the instructor should verify against a datasheet" checked>Do not invent datasheet specifications or pinouts; use typical published values and flag any figure the instructor should verify against a datasheet</label>
+  <label class="check-item"><input type="checkbox" data-group="pedConstraint" value="Show every formula with variables defined, and label all quantities with units and SI prefixes (mA, kΩ, µF, kHz)" checked>Show every formula with variables defined, and label all quantities with units and SI prefixes (mA, kΩ, µF, kHz)</label>
+  <label class="check-item"><input type="checkbox" data-group="pedConstraint" value="Use standard ANSI/IEEE symbol names and notation consistent with the course" checked>Use standard ANSI/IEEE symbol names and notation consistent with the course</label>
+  <label class="check-item"><input type="checkbox" data-group="pedConstraint" value="Ensure content fits within the selected page size if a print format was chosen" checked>Ensure content fits within the selected page size if a print format was chosen</label>
+  <label class="check-item"><input type="checkbox" data-group="pedConstraint" value="Keep language classroom-appropriate and free of unnecessary jargon">Keep language classroom-appropriate and free of unnecessary jargon</label>
+  <label class="check-item"><input type="checkbox" data-group="pedConstraint" value="Match reading level and math complexity to a community college electronics technology audience (algebra-based)">Match reading level and math complexity to a community college electronics technology audience (algebra-based)</label>
+</div>
+  </div>
+</details>
+
+<!-- 7. TARGET MODEL -->
+<details class="card" open>
+  <summary><span class="num">7</span> Target Model <span class="chev">▾</span></summary>
+  <div class="card-body">
+<div class="field">
+  <label for="targetModel">Generate this prompt for</label>
+  <select id="targetModel">
+    <option selected>Claude *</option>
+    <option>ChatGPT</option>
+    <option>Gemini</option>
+    <option>Perplexity</option>
+  </select>
+  <div class="hint">Phrasing adjusts slightly depending on the target model's conventions.</div>
+</div>
+  </div>
+</details>
+
+    </div>
+
+    <!-- OUTPUT PANEL -->
+    <div class="sticky-panel">
+      <div class="card">
+        <div class="output-head">
+          <span>Generated Prompt</span>
+        </div>
+        <div class="output-body">
+          <textarea id="promptOutput" readonly aria-label="Generated prompt"></textarea>
+          <div class="btn-row">
+            <button class="btn primary" id="copyBtn" type="button">Copy</button>
+            <button class="btn" id="downloadBtn" type="button">⬇ Download .TXT</button>
+            <button class="btn" id="resetBtn" type="button">↺ Reset</button>
+          </div>
+          <div class="copy-flash" id="copyFlash" aria-live="polite"></div>
+          <div class="safeguard-note">
+            Built for ELT 102-350: Digital Logic &amp; Solid State Devices · Moraine Valley Community College.
+            Verify all component values, formulas, and pinouts against datasheets, and review generated cheatsheets against your department's lab safety and responsible AI use policies before classroom use.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// =====================================================================
+// ELT 102 LESSON DATA — title, domain, companion lab, major concepts, objectives
+// Source: ELT 102-350 course site (8 lessons + cumulative review)
+// =====================================================================
+const LESSONS = [
+  {
+    "title": "Semiconductor Fundamentals & Diodes",
+    "day": "Day 1",
+    "cluster": "Semiconductor Fundamentals",
+    "lab": "Lab 1 — Diode Operations (Si/Ge forward & reverse bias curves using the DC power supply and DMM)",
+    "concepts": [
+      "Atomic structure of silicon and germanium: valence electrons and covalent bonding",
+      "Intrinsic vs. extrinsic semiconductors; donor/acceptor doping (N-type, P-type)",
+      "Holes, majority and minority carriers",
+      "P-N junction, depletion region, and barrier potential",
+      "Forward bias, reverse bias, and reverse breakdown",
+      "Diode I-V characteristic curve, knee (threshold) voltage, dynamic resistance",
+      "Diode models: ideal, 0.7 V constant-drop, piecewise-linear",
+      "Diode as a switch and as a half-wave / full-wave rectifier; PIV",
+      "Zener diode as a shunt voltage regulator",
+      "Temperature effects on forward voltage and reverse leakage current"
+    ],
+    "objectives": [
+      "Describe the atomic structure of silicon and germanium, including valence electrons and covalent bonding in the crystal lattice.",
+      "Differentiate intrinsic and extrinsic semiconductors, and explain how donor and acceptor doping create N-type and P-type materials.",
+      "Explain the formation of the depletion region and barrier potential at a P-N junction.",
+      "Analyze diode behavior under forward bias, reverse bias, and reverse breakdown conditions.",
+      "Interpret the diode I-V characteristic curve, identifying the knee (threshold) voltage, forward operating region, and breakdown region.",
+      "Apply the practical diode models (ideal, 0.7 V constant-drop, and piecewise-linear) to solve basic DC resistor-diode circuits.",
+      "Explain how a diode operates as an electronic switch and as a half-wave or full-wave rectifier.",
+      "Describe Zener diode operation in reverse breakdown and its use as a shunt voltage regulator.",
+      "Predict how temperature affects forward voltage and reverse leakage current."
+    ]
+  },
+  {
+    "title": "Diode Applications, Power Supply Circuits & Optoelectronics",
+    "day": "Day 2",
+    "cluster": "Semiconductor Fundamentals",
+    "lab": "Lab 2 — Rectifier & Power Supply Analysis (half-wave and bridge rectifiers, capacitive filter, ripple, Zener regulation)",
+    "concepts": [
+      "Half-wave, center-tapped full-wave, and bridge rectifiers",
+      "Peak output voltage, average DC value, ripple frequency, and PIV rating",
+      "Capacitive filtering and ripple voltage: Vr(pp) ≈ I_LOAD / (f_ripple × C)",
+      "Linear power supply chain: transformer → rectifier → filter → regulator",
+      "Three-terminal regulators (7805): dropout voltage, line and load regulation",
+      "LED drive circuits and current-limiting resistor selection",
+      "Photodiodes (photovoltaic vs. photoconductive) and phototransistors",
+      "Optocouplers, current transfer ratio (CTR), and galvanic isolation",
+      "Oscilloscope DC vs. AC coupling for viewing waveforms and ripple"
+    ],
+    "objectives": [
+      "Analyze half-wave, center-tapped full-wave, and bridge rectifier circuits, calculating peak output voltage, average DC value, ripple frequency, and required PIV rating.",
+      "Explain how a capacitive filter converts pulsating DC into smooth DC through repeated charge and discharge cycles.",
+      "Calculate ripple voltage using Vr(pp) ≈ I_LOAD / (f_ripple × C) and select an appropriate filter capacitor for a given load.",
+      "Measure AC/DC conversion on an oscilloscope, using DC coupling to view total waveforms and AC coupling to zoom in on ripple.",
+      "Describe the complete linear power supply chain — transformer → rectifier → filter → regulator — and the role of each stage.",
+      "Evaluate voltage regulator behavior, including dropout voltage, line regulation, and load regulation for three-terminal regulators such as the 7805.",
+      "Design an LED drive circuit, selecting the series current-limiting resistor from supply voltage, LED forward voltage, and target current.",
+      "Differentiate photodiode operating modes (photovoltaic vs. photoconductive) and phototransistor behavior in light-sensing circuits.",
+      "Apply optocouplers to achieve galvanic isolation, calculating current transfer ratio (CTR) and explaining why common-mode noise cannot cross the optical barrier."
+    ]
+  },
+  {
+    "title": "BJTs, FETs, MOSFETs, SCR & TRIAC",
+    "day": "Day 3",
+    "cluster": "Active Devices & Amplifiers",
+    "lab": "Lab 3 — BJT Biasing & DC Load Line (NPN common-emitter bias, Q-point, saturation vs. cutoff switching)",
+    "concepts": [
+      "NPN and PNP BJT operation: I_C = β × I_B",
+      "Cutoff, active (linear), and saturation regions",
+      "Common-emitter, common-base, and common-collector configurations",
+      "Biasing, DC load line, and Q-point",
+      "JFETs vs. MOSFETs: voltage control, pinch-off vs. threshold voltage, R_DS(on)",
+      "ESD sensitivity and gate-handling precautions",
+      "Thyristors: SCR triggering, latching and holding current, commutation",
+      "TRIAC and DIAC phase (firing-angle) control in AC power circuits",
+      "Device selection for switching and amplification tasks"
+    ],
+    "objectives": [
+      "Identify the schematic symbols, terminals, and packages of NPN/PNP BJTs, N- and P-channel JFETs and MOSFETs, SCRs, TRIACs, and DIACs.",
+      "Explain NPN and PNP transistor operation, including how a small base current controls a large collector current (I_C = β × I_B).",
+      "Distinguish the three BJT operating regions — cutoff, active, and saturation — and relate each to switch-OFF, amplifier, and switch-ON behavior.",
+      "Compare the common-emitter, common-base, and common-collector configurations by gain, impedance, and typical application.",
+      "Construct a DC load line on a set of collector characteristic curves and locate the Q-point for a given bias.",
+      "Differentiate JFETs from MOSFETs, including voltage-controlled operation, pinch-off vs. threshold voltage, and gate-handling (ESD) precautions.",
+      "Describe SCR triggering, latching, and holding current, and explain why an SCR stays on after the gate signal is removed.",
+      "Explain TRIAC phase-control operation in AC power circuits such as lamp dimmers and motor speed controls.",
+      "Select the appropriate device — BJT, MOSFET, SCR, or TRIAC — for a given switching or amplification task using a technician's decision criteria."
+    ]
+  },
+  {
+    "title": "Transistor Amplifiers & Op-Amps",
+    "day": "Day 4",
+    "cluster": "Active Devices & Amplifiers",
+    "lab": "Lab 4 — Common-Emitter Amplifier & Op-Amp Configurations (CE gain and impedance; LM741 inverting and non-inverting amplifiers)",
+    "concepts": [
+      "Small-signal operation: AC signal superimposed on DC bias",
+      "Coupling and bypass capacitors",
+      "Common-emitter voltage gain: A_V ≈ −R_C / r'e, with r'e = 25 mV / I_E",
+      "Input/output impedance, loading effects, and clipping",
+      "Ideal op-amp characteristics and the two golden rules",
+      "Inverting (A_V = −R_f/R_in) and non-inverting (A_V = 1 + R_f/R_in) amplifiers; virtual ground",
+      "Voltage follower and comparator",
+      "Integrator and differentiator circuits",
+      "Negative feedback, slew rate, gain-bandwidth product, positive feedback/hysteresis"
+    ],
+    "objectives": [
+      "Explain how a common-emitter amplifier superimposes a small AC signal on the DC bias, and the role of coupling and bypass capacitors.",
+      "Calculate common-emitter voltage gain using A_V ≈ −R_C / r'e, where r'e = 25 mV / I_E.",
+      "Analyze input and output impedance of a CE stage and predict loading effects when stages are cascaded.",
+      "Identify the op-amp symbol, its differential inputs, and the ideal characteristics: infinite gain, infinite input impedance, zero output impedance.",
+      "Apply the two golden rules of negative feedback — no input current, zero differential voltage — to analyze any op-amp circuit.",
+      "Derive and use the gain equations for the inverting (A_V = −R_f/R_in) and non-inverting (A_V = 1 + R_f/R_in) configurations, including the concept of virtual ground.",
+      "Describe the voltage follower and comparator, and explain why one uses full negative feedback while the other uses none.",
+      "Predict the output waveforms of integrator and differentiator circuits for square, triangle, and sine inputs.",
+      "Verify each amplifier configuration hands-on using simulators and bench measurements."
+    ]
+  },
+  {
+    "title": "Number Systems, Logic Gates & Boolean Algebra",
+    "day": "Day 5",
+    "cluster": "Logic Fundamentals",
+    "lab": "Lab 5 — Logic Gate Truth Table Verification (7400-series AND, OR, NOT, NAND, NOR, XOR, XNOR ICs with LED indicators)",
+    "concepts": [
+      "Binary, octal, decimal, and hexadecimal; weighted place value; MSB/LSB",
+      "Bits, nibbles, bytes; repeated-division and 3-bit/4-bit grouping conversions",
+      "Base-2 and base-16 addition and subtraction (carries and borrows)",
+      "Signed binary: 2's complement, sign bit, overflow",
+      "AND, OR, NOT, NAND, NOR gates: ANSI symbols, expressions, truth tables",
+      "NAND and NOR as universal gates",
+      "Boolean laws: identity, null, idempotent, complement, commutative, associative, distributive",
+      "DeMorgan's theorems and bubble pushing",
+      "Logic levels (HIGH/LOW)"
+    ],
+    "objectives": [
+      "Convert values among binary, octal, decimal, and hexadecimal using weighted place value, repeated division, and the 3-bit/4-bit grouping shortcuts.",
+      "Perform addition and subtraction directly in base-2 and base-16, managing carries and borrows correctly.",
+      "Represent signed numbers in 2's complement form, negate values by invert-and-add-one, and recognize overflow.",
+      "Identify the ANSI schematic symbols for AND, OR, NOT, NAND, and NOR gates and state each gate's Boolean expression.",
+      "Construct and interpret truth tables for individual gates and simple gate combinations.",
+      "Explain why NAND and NOR are called universal gates and sketch how each builds the three basic functions.",
+      "Apply the fundamental Boolean laws — identity, null, idempotent, complement, commutative, associative, and distributive — to simplify expressions.",
+      "Use DeMorgan's theorems to convert between AND-based and OR-based forms and to \"push bubbles\" through a logic diagram.",
+      "Verify gate behavior and Boolean identities hands-on using simulators and 7400-series ICs."
+    ]
+  },
+  {
+    "title": "Latches and Flip-Flops",
+    "day": "Day 6",
+    "cluster": "Logic Fundamentals",
+    "lab": "Lab 6 — Flip-Flop Operation & Register Design (SR, D, and JK flip-flops using 74xx ICs; 4-bit shift register)",
+    "concepts": [
+      "XOR and XNOR gate functionality",
+      "Bistable elements, cross-coupled feedback, Q and Q̅ outputs",
+      "Level-sensitive latches vs. edge-triggered flip-flops",
+      "SR latch: set, reset, hold, and the invalid S = R = 1 state; metastability",
+      "Gated SR and D (transparent) latches; enable input",
+      "SR, D, JK, and T flip-flops; characteristic tables; clock enable",
+      "Timing diagrams, setup and hold time",
+      "Toggle mode, divide-by-2 frequency division",
+      "Registers, shift registers, counters, synchronizers, and state machines"
+    ],
+    "objectives": [
+      "Explain bistability — how a circuit with two stable states stores one bit — and why sequential logic needs it.",
+      "Distinguish level-sensitive latches from edge-triggered flip-flops, and predict when each device's output is allowed to change.",
+      "Describe SR latch operation (Set, Reset, Hold), identify the invalid S=R=1 condition, and explain the resulting race/metastability hazard.",
+      "Analyze gated SR and D latches, including transparent operation while enable is active and hold behavior when it is not.",
+      "Interpret characteristic tables and timing diagrams for SR, D, JK, and T flip-flops, including clock-enable variants.",
+      "Explain why the JK flip-flop resolves the SR invalid state as toggle, and why it is called the universal flip-flop.",
+      "Apply the T flip-flop's toggle mode to divide-by-2 frequency division and binary counting.",
+      "Identify the IEEE/ANSI block symbols for latches and flip-flops, including the clock-edge triangle and inversion bubble conventions.",
+      "Match each device to its common applications — flags, registers, shift registers, counters, synchronizers, and state machines."
+    ]
+  },
+  {
+    "title": "Encoders, Decoders, Multiplexers, A/D & D/A Converters",
+    "day": "Day 7",
+    "cluster": "Digital Systems",
+    "lab": "Lab 8 — 7-Segment Display Decoder & Priority Encoder (BCD-to-7-segment decoder driving a common-cathode display; 3-bit priority encoder)",
+    "concepts": [
+      "Combinational MSI circuits for encoding, routing, and converting signals",
+      "Encoders and priority encoders; BCD",
+      "Decoders (N-to-2ᴺ) and enable inputs; seven-segment display drivers",
+      "Multiplexers and select lines",
+      "Demultiplexers; decoder-as-DEMUX; buses",
+      "Time-division multiplexing over a shared channel",
+      "A/D conversion: sampling, quantization, encoding; resolution = 2ⁿ levels",
+      "D/A conversion: stepped (staircase) output and reconstruction filtering",
+      "Applications: keypads, memory address decoding, displays, sensor acquisition, audio"
+    ],
+    "objectives": [
+      "Explain the role of combinational MSI circuits in encoding, routing, and converting signals within digital systems.",
+      "Describe encoder operation — converting one active input line into a binary or BCD code — and explain how a priority encoder resolves multiple active inputs.",
+      "Analyze decoder operation, tracing an N-bit input to exactly one of 2ᴺ activated output lines, and explain the function of the enable input.",
+      "Trace data through a multiplexer, using select lines to determine which of many inputs reaches the single output.",
+      "Contrast demultiplexer operation — distributing one input to a selected output — and explain how a decoder with a data input becomes a DEMUX.",
+      "Design conceptually a MUX/DEMUX data-transmission link that shares one channel among multiple signals (time-division multiplexing).",
+      "Explain the three steps of analog-to-digital conversion — sampling, quantizing, encoding — and calculate resolution as 2ⁿ levels.",
+      "Describe digital-to-analog conversion, the stepped output waveform, and why filtering smooths the reconstruction.",
+      "Match encoders, decoders, MUXes, DEMUXes, ADCs, and DACs to real applications — keypads, memory address decoding, seven-segment displays, bus routing, sensor acquisition, and audio playback."
+    ]
+  },
+  {
+    "title": "Counters, Timers & Oscillators",
+    "day": "Day 8",
+    "cluster": "Digital Systems",
+    "lab": "Lab 7 — Binary & Decade Counter Circuits (4-bit JK ripple counter; 74160 synchronous decade counter; oscilloscope waveforms)",
+    "concepts": [
+      "Oscillators: RC relaxation vs. crystal; period, frequency, duty cycle",
+      "555 timer astable mode: capacitor cycling between ⅓ and ⅔ V_CC; f = 1.44 / ((R₁ + 2R₂)C)",
+      "555 monostable (one-shot) mode: T = 1.1·R·C; threshold and trigger",
+      "RC time constant (τ)",
+      "Quartz crystal plus flip-flop divider chains for precision clocks",
+      "Asynchronous (ripple) vs. synchronous counters; modulus (MOD)",
+      "4-bit binary counters as divide-by-2ⁿ frequency dividers",
+      "BCD (decade) counters, cascading, and terminal count / carry out",
+      "Up/down counters and Johnson (twisted-ring) counters"
+    ],
+    "objectives": [
+      "Explain how an oscillator sustains a repeating waveform without an input signal, and distinguish RC relaxation oscillators from crystal oscillators by stability and application.",
+      "Analyze 555 timer astable operation — the capacitor cycling between ⅓ and ⅔ V_CC — and calculate frequency with f = 1.44 / ((R₁ + 2R₂)C).",
+      "Calculate monostable (one-shot) pulse width using T = 1.1·R·C and identify applications for triggered timing pulses.",
+      "Describe how a quartz crystal plus a flip-flop divider chain produces precision clocks, from wristwatches to microprocessors.",
+      "Distinguish asynchronous (ripple) counters from synchronous counters, and explain modulus as the number of states a counter cycles through.",
+      "Trace a 4-bit binary counter through its 16 states, reading each output as a divide-by-2ⁿ frequency divider.",
+      "Explain how a BCD (decade) counter resets at ten, and how cascaded decades drive multi-digit displays through decoders.",
+      "Analyze up/down counter direction control and Johnson (twisted-ring) counter operation, including its 2n-state sequence and glitch-free decoding.",
+      "Connect oscillator → clock → counter into one working timing chain and verify it with simulation and bench measurements."
+    ]
+  },
+  {
+    "title": "Cumulative Review — Course Learning Outcomes",
+    "day": "Course-wide",
+    "cluster": "Cumulative Review",
+    "lab": "Labs 1–8 (all lab exercises)",
+    "concepts": [
+      "Semiconductor Fundamentals (Lessons 1–2): diodes, rectifiers, power supplies, optoelectronics",
+      "Active Devices & Amplifiers (Lessons 3–4): BJTs, FETs, thyristors, CE amplifiers, op-amps",
+      "Logic Fundamentals (Lessons 5–6): number systems, gates, Boolean algebra, latches, flip-flops",
+      "Digital Systems (Lessons 7–8): encoders, decoders, MUX/DEMUX, ADC/DAC, counters, 555 timers, oscillators",
+      "Lab practice: breadboarding, DMM, oscilloscope, function generator, troubleshooting"
+    ],
+    "objectives": [
+      "Explain semiconductor physics including atomic structure, doping, and P-N junction behavior to analyze diode operation in forward and reverse bias conditions.",
+      "Design and analyze diode circuits including half-wave and full-wave rectifiers, capacitive filter networks, and voltage regulator stages, and measure waveforms using an oscilloscope.",
+      "Describe the operating characteristics of optoelectronic devices (LEDs, photodiodes, optocouplers) and select appropriate devices for optical isolation applications.",
+      "Analyze BJT, JFET, MOSFET, SCR, and TRIAC operation in switching and amplification circuits, applying DC load line analysis and biasing calculations.",
+      "Design and evaluate small-signal transistor amplifier circuits and operational amplifier configurations, calculating voltage gain, input/output impedance, and bandwidth.",
+      "Perform conversions between binary, octal, decimal, and hexadecimal number systems, apply signed binary arithmetic using 2's complement, and solve Boolean algebra expressions.",
+      "Design and minimize combinational logic circuits using truth tables, Boolean simplification, and Karnaugh Maps, and implement designs using standard gate ICs.",
+      "Analyze sequential logic circuits including SR, D, and JK flip-flops, and apply them to the design of registers, latches, and state machines.",
+      "Construct and test encoder, decoder, multiplexer, and A/D–D/A converter circuits, explaining the role of each in data conversion and digital communications systems.",
+      "Build and measure asynchronous/synchronous counter circuits and 555-based timer/oscillator circuits, calculating frequency, duty cycle, and RC time constants.",
+      "Demonstrate safe lab practices, accurate circuit construction on breadboards, and correct use of multimeters, oscilloscopes, and function generators to troubleshoot electronic circuits."
+    ]
+  }
+];
+
+const NOUN = "cheatsheet";
+const OBJ_VERB = "support";
+const DOWNLOAD_NAME = "elt102-instructional-cheatsheet-prompt.txt";
+const MODEL_INTROS = {
+  "Claude": "You are helping design a classroom quick-reference handout for an electronics course. Generate a cheatsheet with the following specifications:",
+  "ChatGPT": "Generate an electronics classroom quick-reference cheatsheet with the following specifications:",
+  "Gemini": "Create an educational electronics reference handout based on these specifications:",
+  "Perplexity": "Produce an instructional electronics quick-reference cheatsheet following these specifications:"
+};
+
+// ---- Tool-specific prompt sections ----
+function buildSections(lines) {
+
+  lines.push('CHEATSHEET TYPE');
+  lines.push(`- ${clean('cheatsheetType')}`);
+  lines.push('');
+
+  lines.push('FORMAT & LAYOUT');
+  lines.push(`- Layout style: ${clean('layoutStyle')}`);
+  lines.push(`- Page size: ${clean('pageSize')}`);
+  lines.push(`- Density: ${clean('density')}`);
+  lines.push('');
+
+  lines.push('CONTENT DEPTH & STYLE');
+  lines.push(`- Detail level per entry: ${clean('detailLevel')}`);
+  lines.push(`- Terminology handling: ${clean('terminologyHandling')}`);
+  lines.push(`- Sorting / organization: ${clean('sortOrder')}`);
+  lines.push('');
+
+  lines.push('OUTPUT SPECIFICATIONS');
+  lines.push(`- Output format: ${clean('outputFormat')}`);
+  checkedValues('cheatOption').forEach(o => lines.push(`- ${o}`));
+  lines.push('');
+
+}
+
+// ---- Populate lesson dropdown ----
+const lessonSel = document.getElementById('lesson');
+LESSONS.forEach((l, i) => {
+  const opt = document.createElement('option');
+  opt.value = i;
+  opt.textContent = `${l.day} — ${l.title}`;
+  lessonSel.appendChild(opt);
+});
+
+const subjectAreaSel = document.getElementById('subjectArea');
+const conceptsBox = document.getElementById('conceptsBox');
+const conceptsText = document.getElementById('conceptsText');
+const labText = document.getElementById('labText');
+const objectivesGrid = document.getElementById('objectivesGrid');
+
+function renderLessonDetails() {
+  const lesson = LESSONS[lessonSel.value];
+  subjectAreaSel.value = lesson.cluster;
+  conceptsText.textContent = lesson.concepts.join(' • ');
+  labText.textContent = lesson.lab;
+  conceptsBox.classList.add('visible');
+
+  objectivesGrid.innerHTML = '';
+  lesson.objectives.forEach((obj, idx) => {
+    const label = document.createElement('label');
+    label.className = 'check-item';
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.dataset.group = 'objectives';
+    input.value = obj;
+    if (idx === 0) input.checked = true;
+    label.appendChild(input);
+    label.appendChild(document.createTextNode(obj));
+    objectivesGrid.appendChild(label);
+    input.addEventListener('change', buildPrompt);
+  });
+  buildPrompt();
+}
+lessonSel.addEventListener('change', renderLessonDetails);
+
+// ---- Gather helpers ----
+function checkedValues(groupName) {
+  return Array.from(document.querySelectorAll(`input[data-group="${groupName}"]:checked`)).map(i => i.value);
+}
+function val(id) { return document.getElementById(id).value; }
+function clean(id) { return val(id).replace(' *', ''); }
+function isOn(group, startsWith) { return checkedValues(group).some(v => v.startsWith(startsWith)); }
+
+// ---- Build the prompt text ----
+function buildPrompt() {
+  const lesson = LESSONS[lessonSel.value];
+  const topic = val('customTopic').trim() || lesson.title;
+  const objectives = checkedValues('objectives');
+  const pedConstraints = checkedValues('pedConstraint');
+  const model = clean('targetModel');
+  const lines = [];
+
+  lines.push(MODEL_INTROS[model] || MODEL_INTROS.Claude);
+  lines.push('');
+
+  lines.push('CONTENT');
+  lines.push(`- Lesson: ${lesson.day} — ${topic} (ELT 102: Digital Logic & Solid State Devices)`);
+  lines.push(`- Subject area / domain: ${val('subjectArea')}`);
+  lines.push(`- Audience / skill level: ${clean('gradeLevel')}`);
+  if (isOn('contextOpt', 'Reference the companion')) lines.push(`- Companion lab exercise: ${lesson.lab}`);
+  if (isOn('contextOpt', 'List this lesson')) {
+    lines.push('- Major concepts in this lesson:');
+    lesson.concepts.forEach(c => lines.push(`  • ${c}`));
+  }
+  if (objectives.length) {
+    lines.push(`- Learning objective(s) this ${NOUN} should ${OBJ_VERB}:`);
+    objectives.forEach(o => lines.push(`  • ${o}`));
+  }
+  lines.push('');
+
+  buildSections(lines);
+
+  if (pedConstraints.length) {
+    lines.push('PEDAGOGICAL & SAFETY CONSTRAINTS');
+    pedConstraints.forEach(c => lines.push(`- ${c}`));
+    lines.push('');
+  }
+
+  lines.push(`This ${NOUN} is for classroom teaching use in ELT 102-350: Digital Logic & Solid State Devices — a three-credit hybrid electronics course (2 hrs lecture / 2 hrs lab per session) at Moraine Valley Community College.`);
+
+  document.getElementById('promptOutput').value = lines.join('\n');
+}
+
+// ---- Remember defaults so Reset restores them exactly ----
+const DEFAULTS = [];
+function captureDefaults() {
+  document.querySelectorAll('select, input[type="text"], input[type="checkbox"]').forEach(el => {
+    if (el.id === 'lesson' || el.dataset.group === 'objectives') return;
+    DEFAULTS.push([el, el.type === 'checkbox' ? el.checked : el.value]);
+  });
+}
+
+// ---- Wire up every input to rebuild the prompt live ----
+document.querySelectorAll('select, input[type="text"], input[type="checkbox"]').forEach(el => {
+  el.addEventListener('input', buildPrompt);
+  el.addEventListener('change', buildPrompt);
+});
+
+// ---- Copy / Download / Reset ----
+document.getElementById('copyBtn').addEventListener('click', function () {
+  const ta = document.getElementById('promptOutput');
+  const flash = document.getElementById('copyFlash');
+  const done = () => { flash.textContent = 'Copied to clipboard.'; setTimeout(() => flash.textContent = '', 2000); };
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(ta.value).then(done, () => { ta.select(); document.execCommand('copy'); done(); });
+  } else { ta.select(); document.execCommand('copy'); done(); }
+});
+
+document.getElementById('downloadBtn').addEventListener('click', function () {
+  const text = document.getElementById('promptOutput').value;
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = DOWNLOAD_NAME;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById('resetBtn').addEventListener('click', function () {
+  DEFAULTS.forEach(([el, v]) => { if (el.type === 'checkbox') el.checked = v; else el.value = v; });
+  lessonSel.value = 0;
+  renderLessonDetails();
+});
+
+// ---- Theme toggle (shares the ELT 102 site preference) ----
+const THEME_KEY = 'elt102-theme';
+function applyTheme(dark) {
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  document.getElementById('themeToggle').textContent = dark ? '☀️ Light' : '🌙 Dark';
+}
+document.getElementById('themeToggle').addEventListener('click', function () {
+  const dark = document.documentElement.getAttribute('data-theme') !== 'dark';
+  try { localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light'); } catch (err) {}
+  applyTheme(dark);
+});
+(function () {
+  let saved = null;
+  try { saved = localStorage.getItem(THEME_KEY); } catch (err) {}
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(saved === 'dark' || (!saved && prefersDark));
+})();
+
+// ---- Init ----
+captureDefaults();
+lessonSel.value = 0;
+renderLessonDetails();
+
+</script>
+</body>
+</html>
