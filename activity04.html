@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ELT 102 Op-Amp Configuration Simulator</title>
+<script>(function(){try{if(localStorage.getItem('elt-theme')==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
+<style>
+:root{
+  --navy:#0047AB; --navy-dark:#003580; --navy-darker:#002a66;
+  --green:#00a86b; --green-dark:#00875a;
+  --amber:#e8a020; --red:#c0392b;
+  --bg:#f5f7fa; --card:#ffffff; --card-alt:#eef2f8;
+  --text:#1c2733; --text-muted:#5a6b7d;
+  --border:#d7dfe9; --shadow:0 2px 10px rgba(0,40,90,.10);
+  --code-bg:#eef2f8;
+}
+[data-theme="dark"]{
+  --navy:#4d8cff; --navy-dark:#3a6fd0; --navy-darker:#0d1b2e;
+  --green:#2ecc8f; --green-dark:#22b07a;
+  --amber:#f0b545; --red:#e06050;
+  --bg:#0f1620; --card:#18222f; --card-alt:#1f2c3c;
+  --text:#e8eef5; --text-muted:#9fb0c2;
+  --border:#2c3a4c; --shadow:0 2px 12px rgba(0,0,0,.45);
+  --code-bg:#111a26;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:Georgia,'Times New Roman',serif;background:var(--bg);color:var(--text);line-height:1.65;transition:background .3s,color .3s;}
+button,select,input{font:inherit;}
+:focus-visible{outline:3px solid var(--amber);outline-offset:2px;}
+.skip{position:absolute;left:-9999px;top:0;background:var(--navy);color:#fff;padding:8px 14px;z-index:200;}
+.skip:focus{left:10px;top:10px;}
+
+/* ============ HEADER ============ */
+.topbar{background:linear-gradient(135deg,#0047AB,#002a66);color:#fff;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.25);}
+[data-theme="dark"] .topbar{background:linear-gradient(135deg,#0d1b2e,#001a40);}
+.topbar .brand{font-family:'Arial Narrow',Arial,sans-serif;font-weight:bold;font-size:1.05rem;letter-spacing:.05em;}
+.topbar .lesson-badge{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);border-radius:20px;padding:3px 14px;font-family:'Arial Narrow',Arial,sans-serif;font-size:.85rem;}
+.theme-btn{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:20px;padding:5px 16px;cursor:pointer;font-family:'Arial Narrow',Arial,sans-serif;font-size:.85rem;transition:background .2s;}
+.theme-btn:hover{background:rgba(255,255,255,.3);}
+.crumbs{background:var(--card);border-bottom:1px solid var(--border);padding:8px 24px;font-family:'Arial Narrow',Arial,sans-serif;font-size:.85rem;color:var(--text-muted);}
+.crumbs a{color:var(--navy);text-decoration:none;}
+.crumbs a:hover{text-decoration:underline;}
+
+/* ============ HERO (compact: the instrument is the star) ============ */
+.hero{background:linear-gradient(135deg,#0047AB 0%,#003580 55%,#00875a 130%);color:#fff;text-align:center;padding:34px 24px 30px;}
+[data-theme="dark"] .hero{background:linear-gradient(135deg,#123a75 0%,#0d1b2e 55%,#0e4a36 130%);}
+.hero .kicker{display:inline-block;background:var(--green);color:#fff;border-radius:20px;padding:4px 18px;font-family:'Arial Narrow',Arial,sans-serif;font-size:.85rem;letter-spacing:.06em;margin-bottom:12px;}
+.hero h1{font-size:2.1rem;margin-bottom:10px;line-height:1.2;}
+.hero .sub{max-width:720px;margin:0 auto 16px;font-size:1.05rem;opacity:.92;font-style:italic;}
+.meta-chips{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;}
+.meta-chips span{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:5px 15px;font-family:'Arial Narrow',Arial,sans-serif;font-size:.86rem;}
+
+/* ============ LAYOUT ============ */
+.wrap{max-width:1180px;margin:0 auto;padding:30px 22px 60px;}
+section{margin-bottom:44px;}
+h2.sec-title{font-size:1.6rem;color:var(--navy);border-bottom:3px solid var(--green);padding-bottom:8px;margin-bottom:18px;}
+h3{color:var(--navy);font-size:1.15rem;}
+p{margin-bottom:12px;}
+strong{color:var(--navy);}
+[data-theme="dark"] strong{color:#8ab6ff;}
+
+/* ============ CONFIG SELECTOR ============ */
+.cfg-row{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:18px;}
+@media(max-width:900px){.cfg-row{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:520px){.cfg-row{grid-template-columns:repeat(2,1fr);}}
+.cfg-btn{background:var(--card);border:2px solid var(--border);border-radius:10px;padding:10px 6px;cursor:pointer;text-align:center;color:var(--text);transition:border-color .2s,background .2s;}
+.cfg-btn .cn{display:block;font-weight:bold;color:var(--navy);font-size:.98rem;}
+.cfg-btn .cf{display:block;font-family:'Arial Narrow',Arial,sans-serif;font-size:.8rem;color:var(--text-muted);margin-top:2px;}
+.cfg-btn:hover{border-color:var(--navy);}
+.cfg-btn[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);}
+.cfg-btn[aria-pressed="true"] .cn,.cfg-btn[aria-pressed="true"] .cf{color:#fff;}
+
+/* ============ SIM GRID ============ */
+.sim-grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:22px;align-items:start;}
+@media(max-width:960px){.sim-grid{grid-template-columns:1fr;}}
+
+/* ============ OSCILLOSCOPE ============ */
+.scope-unit{background:linear-gradient(180deg,#22324a,#131d29);border-radius:16px;padding:14px 14px 16px;box-shadow:0 8px 26px rgba(0,30,70,.30),inset 0 1px 0 rgba(255,255,255,.08);border:1px solid #2c3d52;}
+.scope-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px;color:#c9d8e8;font-family:'Arial Narrow',Arial,sans-serif;font-size:.92rem;}
+.scope-title{letter-spacing:.04em;font-weight:bold;}
+.status{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.35);border-radius:20px;padding:4px 14px;font-weight:bold;}
+.led{width:10px;height:10px;border-radius:50%;flex:none;}
+.led.ok{background:#2ecc8f;box-shadow:0 0 8px #2ecc8f;}
+.led.warn{background:#f0b545;box-shadow:0 0 8px #f0b545;}
+.led.bad{background:#e06050;box-shadow:0 0 8px #e06050;}
+.led.info{background:#6fa8ff;box-shadow:0 0 8px #6fa8ff;}
+.screen-wrap{background:#04080c;border-radius:9px;padding:6px;box-shadow:inset 0 0 0 1px #0b1620,inset 0 3px 14px rgba(0,0,0,.6);}
+canvas#scope{width:100%;aspect-ratio:5/3;display:block;border-radius:5px;}
+.meas{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;}
+@media(max-width:560px){.meas{grid-template-columns:repeat(2,1fr);}}
+.m{background:rgba(0,0,0,.28);border:1px solid #2a3a4e;border-radius:8px;padding:8px 10px;}
+.m .ml{font-family:'Arial Narrow',Arial,sans-serif;font-size:.78rem;color:#9db1c7;}
+.m .mv{font-family:'Courier New',monospace;font-size:1.02rem;color:#eaf2fb;font-weight:bold;margin-top:2px;}
+.m .mv.c1{color:#f0b545;} .m .mv.c2{color:#2ecc8f;}
+.alert{display:none;margin-top:12px;background:rgba(224,96,80,.16);border:1px solid rgba(224,96,80,.55);border-radius:8px;padding:10px 12px;color:#f3d2cd;font-size:.9rem;}
+.alert.show{display:block;}
+.alert button{margin-top:8px;background:#e06050;color:#fff;border:none;border-radius:16px;padding:4px 14px;cursor:pointer;font-family:'Arial Narrow',Arial,sans-serif;}
+
+/* ============ CONTROL PANEL ============ */
+.panel{background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:18px 18px 6px;}
+.panel h3{margin:0 0 14px;}
+.ctrl{margin-bottom:15px;}
+.ctrl > label,.ctrl .lbl{display:flex;justify-content:space-between;gap:8px;font-family:'Arial Narrow',Arial,sans-serif;font-size:.92rem;font-weight:bold;color:var(--navy);margin-bottom:5px;}
+.ctrl .val{color:var(--green-dark);font-weight:bold;white-space:nowrap;}
+.ctrl input[type=range]{width:100%;accent-color:var(--green);}
+.ctrl .range-ends{display:flex;justify-content:space-between;font-family:'Arial Narrow',Arial,sans-serif;font-size:.74rem;color:var(--text-muted);}
+.seg{display:flex;flex-wrap:wrap;gap:6px;}
+.seg button{flex:1;min-width:58px;font-family:'Arial Narrow',Arial,sans-serif;background:var(--card-alt);color:var(--text-muted);border:1px solid var(--border);border-radius:8px;padding:7px 6px;cursor:pointer;font-size:.88rem;transition:all .2s;}
+.seg button:hover{color:var(--navy);border-color:var(--navy);}
+.seg button[aria-pressed="true"]{background:var(--navy);color:#fff;border-color:var(--navy);font-weight:bold;}
+.ctrl select{width:100%;padding:7px 8px;border-radius:8px;border:1px solid var(--border);background:var(--card-alt);color:var(--text);font-family:'Arial Narrow',Arial,sans-serif;font-size:.92rem;}
+.toggles{display:flex;flex-direction:column;gap:8px;}
+.tg{display:flex;align-items:flex-start;gap:9px;font-size:.9rem;cursor:pointer;}
+.tg input{margin-top:5px;accent-color:var(--navy);width:16px;height:16px;flex:none;}
+.tg small{display:block;color:var(--text-muted);font-family:'Arial Narrow',Arial,sans-serif;font-size:.78rem;line-height:1.35;}
+.note{font-size:.88rem;color:var(--text-muted);background:var(--card-alt);border-left:4px solid var(--green);border-radius:0 8px 8px 0;padding:9px 12px;margin-bottom:14px;}
+.divider{border:none;border-top:1px dashed var(--border);margin:6px 0 14px;}
+
+/* ============ SCHEMATIC + THEORY ============ */
+.lower-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:22px;}
+@media(max-width:900px){.lower-grid{grid-template-columns:1fr;}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:18px 20px;}
+.card h3{margin-bottom:10px;}
+.schem svg{width:100%;height:auto;display:block;}
+.schem svg .w{stroke:var(--navy);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+.schem svg .cmp{stroke:var(--green-dark);stroke-width:2.4;fill:none;stroke-linejoin:round;stroke-linecap:round;}
+.schem svg .cmp.fault{stroke:var(--red);}
+.schem svg .oa{stroke:var(--text);stroke-width:2.4;fill:var(--card-alt);stroke-linejoin:round;}
+.schem svg .dot{fill:var(--navy);}
+.schem svg text{font-family:'Arial Narrow',Arial,sans-serif;font-size:12px;fill:var(--text);}
+.schem svg text.pm{font-size:18px;font-weight:bold;}
+.schem svg text.muted{fill:var(--text-muted);font-style:italic;font-size:11px;}
+.schem svg text.flt{fill:var(--red);font-weight:bold;}
+.schem svg text.probe{font-size:11px;font-weight:bold;}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-family:'Arial Narrow',Arial,sans-serif;font-size:.85rem;color:var(--text-muted);margin-top:8px;}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px;}
+.legend .l1::before{background:#e8a020;} .legend .l2::before{background:#00a86b;}
+.formula{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-family:'Courier New',monospace;font-size:.98rem;margin:10px 0 14px;overflow-x:auto;}
+.dv{list-style:none;margin:12px 0 0;border-top:1px solid var(--border);}
+.dv li{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--border);font-size:.92rem;}
+.dv li span:first-child{color:var(--text-muted);}
+.dv li span:last-child{font-weight:bold;color:var(--navy);text-align:right;}
+[data-theme="dark"] .dv li span:last-child{color:#8ab6ff;}
+.callout{border-radius:10px;padding:13px 16px;margin:14px 0 4px;border-left:6px solid;}
+.callout .co-title{font-family:'Arial Narrow',Arial,sans-serif;font-weight:bold;letter-spacing:.03em;font-size:.92rem;margin-bottom:4px;}
+.co-tip{background:rgba(0,168,107,.09);border-color:var(--green);}
+.co-tip .co-title{color:var(--green-dark);}
+.co-pro{background:rgba(0,71,171,.08);border-color:var(--navy);}
+.co-pro .co-title{color:var(--navy);}
+
+/* ============ ACCORDION ============ */
+.acc{background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);margin-bottom:18px;overflow:hidden;}
+.acc-head{width:100%;background:linear-gradient(135deg,var(--navy-dark),var(--navy-darker));color:#fff;border:none;padding:15px 22px;font-family:Georgia,serif;font-size:1.2rem;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+[data-theme="dark"] .acc-head{background:linear-gradient(135deg,#1a3a68,#0d1b2e);}
+.acc-head .plus{font-size:1.3rem;transition:transform .3s;}
+.acc.open .acc-head .plus{transform:rotate(45deg);}
+.acc-body{display:none;padding:22px;}
+.acc.open .acc-body{display:block;}
+
+/* ============ TABLE ============ */
+.tbl-wrap{overflow-x:auto;margin:6px 0;}
+table.data{width:100%;border-collapse:collapse;font-size:.92rem;}
+table.data th{background:var(--navy);color:#fff;padding:10px 12px;text-align:left;font-family:'Arial Narrow',Arial,sans-serif;letter-spacing:.03em;}
+[data-theme="dark"] table.data th{background:#1a3a68;}
+table.data td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top;}
+table.data tr:nth-child(even) td{background:var(--card-alt);}
+
+/* ============ LABS ============ */
+.labs{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:14px;}
+.lab{background:var(--card-alt);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;}
+.lab h4{color:var(--navy);font-size:1rem;margin-bottom:6px;}
+[data-theme="dark"] .lab h4{color:#8ab6ff;}
+.lab p{font-size:.9rem;margin-bottom:10px;}
+.lab .lab-actions{margin-top:auto;}
+.lab button{background:var(--green);color:#fff;border:none;border-radius:18px;padding:6px 16px;cursor:pointer;font-family:'Arial Narrow',Arial,sans-serif;font-size:.88rem;}
+.lab button:hover{background:var(--green-dark);}
+.lab details{margin-top:10px;font-size:.88rem;}
+.lab summary{cursor:pointer;color:var(--navy);font-family:'Arial Narrow',Arial,sans-serif;font-weight:bold;}
+[data-theme="dark"] .lab summary{color:#8ab6ff;}
+.lab details div{margin-top:6px;padding:9px 11px;background:var(--card);border-left:4px solid var(--navy);border-radius:0 6px 6px 0;}
+
+/* ============ FOOT NAV ============ */
+.foot-nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:40px;}
+.foot-nav a{background:var(--navy);color:#fff;text-decoration:none;border-radius:26px;padding:11px 26px;font-family:'Arial Narrow',Arial,sans-serif;box-shadow:var(--shadow);transition:background .2s,transform .15s;}
+.foot-nav a:hover{background:var(--navy-dark);transform:translateY(-2px);}
+.foot-nav a.home{background:var(--green);}
+.foot-nav a.home:hover{background:var(--green-dark);}
+footer{background:var(--navy-darker);color:rgba(255,255,255,.75);text-align:center;padding:26px 20px;font-family:'Arial Narrow',Arial,sans-serif;font-size:.83rem;line-height:1.7;}
+[data-theme="dark"] footer{background:#0a1420;}
+@media(max-width:640px){.hero h1{font-size:1.7rem;}}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important;}html{scroll-behavior:auto;}}
+</style>
+</head>
+<body>
+<a class="skip" href="#sim">Skip to the simulator</a>
+
+<!-- ================= TOP BAR ================= -->
+<div class="topbar">
+  <span class="brand">⚡ ELT 102 · Digital Logic &amp; Solid State Devices</span>
+  <span class="lesson-badge">Lesson 4 Companion Simulator</span>
+  <button class="theme-btn" id="themeBtn" type="button" aria-pressed="false">🌓 Dark mode</button>
+</div>
+<nav class="crumbs" aria-label="Breadcrumb">
+  <a href="index.html">ELT 102 Home</a> &nbsp;›&nbsp;
+  <a href="lesson04.html">Lesson 4: Transistor Amplifiers &amp; Op-Amps</a> &nbsp;›&nbsp;
+  Op-Amp Configuration Simulator
+</nav>
+
+<!-- ================= HERO ================= -->
+<header class="hero">
+  <span class="kicker">Unit 2 · Active Devices</span>
+  <h1>Op-Amp Configuration Simulator</h1>
+  <p class="sub">One op-amp, six circuits. Set the generator, choose the resistors, and read the result on a dual-trace scope the way you will on the bench.</p>
+  <div class="meta-chips">
+    <span>6 configurations</span>
+    <span>Live schematic</span>
+    <span>Bench-style measurements</span>
+    <span>10 guided labs</span>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ================= SIMULATOR ================= -->
+<section id="sim" aria-label="Simulator">
+  <h2 class="sec-title">📈 Build It, Probe It, Measure It</h2>
+
+  <div class="cfg-row" id="cfgRow" role="group" aria-label="Op-amp configuration">
+    <button class="cfg-btn" data-cfg="inv" type="button"><span class="cn">Inverting</span><span class="cf">gain −R<sub>f</sub>/R<sub>in</sub></span></button>
+    <button class="cfg-btn" data-cfg="non" type="button"><span class="cn">Non-inverting</span><span class="cf">gain 1 + R<sub>f</sub>/R<sub>in</sub></span></button>
+    <button class="cfg-btn" data-cfg="fol" type="button"><span class="cn">Voltage follower</span><span class="cf">gain = 1</span></button>
+    <button class="cfg-btn" data-cfg="cmp" type="button"><span class="cn">Comparator</span><span class="cf">no feedback</span></button>
+    <button class="cfg-btn" data-cfg="int" type="button"><span class="cn">Integrator</span><span class="cf">C in feedback</span></button>
+    <button class="cfg-btn" data-cfg="dif" type="button"><span class="cn">Differentiator</span><span class="cf">C at the input</span></button>
+  </div>
+
+  <div class="sim-grid">
+    <!-- SCOPE -->
+    <div>
+      <div class="scope-unit">
+        <div class="scope-head">
+          <span class="scope-title">Dual-trace oscilloscope</span>
+          <span class="status" role="status" aria-live="polite"><span class="led ok" id="led"></span><span id="statusTxt">Linear</span></span>
+        </div>
+        <div class="screen-wrap">
+          <canvas id="scope" role="img" aria-label="Oscilloscope display"></canvas>
+        </div>
+        <div class="meas">
+          <div class="m"><div class="ml">CH1 input peak</div><div class="mv c1" id="m1">–</div></div>
+          <div class="m"><div class="ml">CH2 output peak-to-peak</div><div class="mv c2" id="m2">–</div></div>
+          <div class="m"><div class="ml" id="m3l">Measured gain</div><div class="mv" id="m3">–</div></div>
+          <div class="m"><div class="ml" id="m4l">Design gain at this frequency</div><div class="mv" id="m4">–</div></div>
+          <div class="m"><div class="ml" id="m5l">Phase shift (fundamental)</div><div class="mv" id="m5">–</div></div>
+          <div class="m"><div class="ml">Input impedance</div><div class="mv" id="m6">–</div></div>
+        </div>
+        <div class="alert" id="alertBox">
+          <div id="alertTxt"></div>
+          <button type="button" id="revealBtn" hidden>Reveal the fault</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="panel" aria-label="Controls">
+      <h3>Function generator &amp; circuit</h3>
+
+      <div class="ctrl">
+        <span class="lbl" id="waveLbl">Signal type</span>
+        <div class="seg" id="waveSeg" role="group" aria-labelledby="waveLbl">
+          <button type="button" data-wave="sine">∿ Sine</button>
+          <button type="button" data-wave="square">⊓ Square</button>
+          <button type="button" data-wave="tri">⋀ Triangle</button>
+        </div>
+      </div>
+
+      <div class="ctrl">
+        <label for="freq">Frequency <span class="val" id="freqVal"></span></label>
+        <input type="range" id="freq" min="0" max="400" step="1">
+        <div class="range-ends"><span>10 Hz</span><span>100 kHz</span></div>
+      </div>
+
+      <div class="ctrl">
+        <label for="amp">Input amplitude (peak) <span class="val" id="ampVal"></span></label>
+        <input type="range" id="amp" min="0.1" max="10" step="0.1">
+        <div class="range-ends"><span>0.1 V</span><span>10 V</span></div>
+      </div>
+
+      <hr class="divider">
+      <div class="note" id="ctrlNote" hidden></div>
+
+      <div class="ctrl" id="rfCtrl">
+        <label for="rf"><span id="rfLbl">R<sub>f</sub> (feedback)</span> <span class="val" id="rfVal"></span></label>
+        <input type="range" id="rf" min="0" step="1">
+        <div class="range-ends"><span>1 kΩ</span><span>1 MΩ (E12 values)</span></div>
+      </div>
+
+      <div class="ctrl" id="rinCtrl">
+        <label for="rin"><span id="rinLbl">R<sub>in</sub> (input)</span> <span class="val" id="rinVal"></span></label>
+        <input type="range" id="rin" min="0" step="1">
+        <div class="range-ends"><span>1 kΩ</span><span>1 MΩ (E12 values)</span></div>
+      </div>
+
+      <div class="ctrl" id="capCtrl">
+        <label for="cap"><span id="capLbl">Capacitor</span></label>
+        <select id="cap">
+          <option value="1e-9">1 nF</option>
+          <option value="1e-8">10 nF</option>
+          <option value="1e-7">100 nF</option>
+          <option value="1e-6">1 µF</option>
+        </select>
+      </div>
+
+      <div class="ctrl" id="refCtrl">
+        <label for="vref">V<sub>REF</sub> on the − input <span class="val" id="refVal"></span></label>
+        <input type="range" id="vref" min="-10" max="10" step="0.1">
+      </div>
+
+      <div class="ctrl" id="faultCtrl">
+        <label for="fault">Insert a fault</label>
+        <select id="fault">
+          <option value="none">None (healthy circuit)</option>
+          <option value="openRf">Open Rf</option>
+          <option value="openRin">Open Rin</option>
+          <option value="shortRf">Shorted Rf</option>
+          <option value="mystery">Mystery fault (diagnose it)</option>
+        </select>
+      </div>
+
+      <hr class="divider">
+
+      <div class="ctrl">
+        <span class="lbl" id="cycLbl">Cycles on screen</span>
+        <div class="seg" id="cycSeg" role="group" aria-labelledby="cycLbl">
+          <button type="button" data-cyc="1">1</button>
+          <button type="button" data-cyc="2">2</button>
+          <button type="button" data-cyc="5">5</button>
+        </div>
+      </div>
+
+      <div class="ctrl">
+        <label for="vdiv">Vertical scale (both channels)</label>
+        <select id="vdiv">
+          <option value="auto">Auto</option>
+          <option value="0.1">100 mV/div</option>
+          <option value="0.5">500 mV/div</option>
+          <option value="1">1 V/div</option>
+          <option value="2">2 V/div</option>
+          <option value="5">5 V/div</option>
+        </select>
+      </div>
+
+      <div class="ctrl toggles">
+        <label class="tg"><input type="checkbox" id="real"><span>Real 741 behavior<small>1 MHz gain-bandwidth and 0.5 V/µs slew rate</small></span></label>
+        <label class="tg"><input type="checkbox" id="noise"><span>Add input noise<small>About 120 mV RMS, like a long unshielded lead</small></span></label>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCHEMATIC + THEORY -->
+  <div class="lower-grid">
+    <div class="card schem">
+      <h3 id="schemTitle">Schematic</h3>
+      <div id="schemBox"></div>
+      <div class="legend"><span class="l1">CH1 probe: input (amber trace)</span><span class="l2">CH2 probe: output (green trace)</span></div>
+    </div>
+    <div class="card">
+      <h3 id="thTitle">How it works</h3>
+      <div class="formula" id="thEq"></div>
+      <p id="thBody"></p>
+      <ul class="dv" id="thVals"></ul>
+      <div class="callout co-tip"><div class="co-title">🎯 Technician check</div><span id="thTip"></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= GUIDED LABS ================= -->
+<section id="labs">
+  <h2 class="sec-title">🧪 Guided Labs: Predict, Load, Explain</h2>
+  <div class="acc open" id="labsAcc">
+    <button class="acc-head" type="button" aria-expanded="true" data-acc="labsAcc">Ten bench-style explorations <span class="plus">➕</span></button>
+    <div class="acc-body">
+      <p>Write your prediction first, then load the setup and measure. Open "Check your prediction" only after you have a number.</p>
+      <div class="labs" id="labGrid"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= COMPETENCIES ================= -->
+<section id="skills">
+  <h2 class="sec-title">🛠️ What a Junior Technician Needs to Know</h2>
+  <div class="acc" id="skillsAcc">
+    <button class="acc-head" type="button" aria-expanded="false" data-acc="skillsAcc">Op-amp knowledge and skills, and where to practice them <span class="plus">➕</span></button>
+    <div class="acc-body">
+      <div class="tbl-wrap"><table class="data">
+        <tr><th>Area</th><th>The technician can…</th><th>Practice it</th></tr>
+        <tr><td>Ideal vs. real op-amp</td><td>State the ideal characteristics (infinite gain and input impedance, zero output impedance) and the real limits that matter on the bench: ±V<sub>sat</sub>, gain-bandwidth product, slew rate, input offset.</td><td>Labs 3, 9, 10 with “Real 741 behavior” on</td></tr>
+        <tr><td>Packages and power</td><td>Identify 741 and LM358 pinouts, wire dual and single supplies, and recognize decoupling capacitors and offset-null pins.</td><td>Bench / Tinkercad op-amp lab</td></tr>
+        <tr><td>Golden rules and virtual ground</td><td>Use “no input current” and “inputs equal under negative feedback” to explain any configuration, and expect about 0 V at the − pin of a working inverting stage.</td><td>Inverting and non-inverting modes</td></tr>
+        <tr><td>Gain calculations</td><td>Calculate inverting and non-inverting gain from resistor values (including the color code and E12 values) and predict output amplitude and phase.</td><td>Labs 1, 2, 4</td></tr>
+        <tr><td>Configuration recognition</td><td>Name a circuit on sight by where the signal enters and what sits in the feedback path: resistor, wire, capacitor, or nothing.</td><td>Live schematic panel</td></tr>
+        <tr><td>Comparators</td><td>Set a reference, predict output state and duty cycle, and explain chatter and the need for hysteresis.</td><td>Labs 5, 6</td></tr>
+        <tr><td>Integrators and differentiators</td><td>Recognize square↔triangle conversions, explain why practical circuits add a bleed resistor or a series input resistor, and find the corner frequency.</td><td>Labs 7, 8</td></tr>
+        <tr><td>Test equipment</td><td>Set a function generator; set V/div, time/div and triggering on a scope; measure peak, peak-to-peak, gain and phase.</td><td>Scope display and measurement row</td></tr>
+        <tr><td>Troubleshooting</td><td>Read the symptom: output stuck at a rail (open feedback), no output (open input or shorted feedback), flattened peaks (clipping), trapezoids (slew), wrong gain (wrong resistor).</td><td>Lab 10 and the fault menu</td></tr>
+        <tr><td>Documentation and safety</td><td>Pull key specs from a datasheet, handle ICs with ESD precautions, and record measured against expected values.</td><td>Bench / lab report</td></tr>
+      </table></div>
+    </div>
+  </div>
+</section>
+
+<div class="foot-nav">
+  <a href="lesson04.html">← Back to Lesson 4</a>
+  <a class="home" href="index.html">🏠 ELT 102 Home</a>
+  <a href="lesson05.html">Lesson 5 →</a>
+</div>
+
+</main>
+
+<footer>
+  ELT 102 · Digital Logic &amp; Solid State Devices · Op-Amp Configuration Simulator<br>
+  Designed and Built by Lead Electronics Instructor &amp; Professor · Moraine Valley Community College<br>
+  © 2026 ELT 102 Course Materials. All rights reserved. Self-contained Offline Edition.
+</footer>
+
+<script>
+/* =================================================================
+   CONSTANTS & STATE
+   ================================================================= */
+const $=id=>document.getElementById(id);
+const VSAT=12, GBW=1e6, SR=0.5e6, NP=600, NOISE=0.12;
+const E12=[1,1.2,1.5,1.8,2.2,2.7,3.3,3.9,4.7,5.6,6.8,8.2];
+const RV=[]; [1e3,1e4,1e5].forEach(d=>E12.forEach(m=>RV.push(Math.round(m*d)))); RV.push(1e6);
+const CFG={
+  inv:{name:'Inverting amplifier',hash:'inverting'},
+  non:{name:'Non-inverting amplifier',hash:'non-inverting'},
+  fol:{name:'Voltage follower',hash:'follower'},
+  cmp:{name:'Comparator',hash:'comparator'},
+  int:{name:'Integrator',hash:'integrator'},
+  dif:{name:'Differentiator',hash:'differentiator'}
+};
+const DEF={wave:'sine',f:1000,A:1,rf:22000,rin:10000,c:1e-8,vref:0,real:false,noise:false,fault:'none'};
+const S=Object.assign({cfg:'inv',cycles:2,vdiv:'auto',mystery:null},DEF);
+const reduceMotion=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let lastR=null, noiseTimer=null;
+
+/* =================================================================
+   FORMATTERS
+   ================================================================= */
+const sig=(v,n=3)=>Number(v.toPrecision(n));
+function fR(r){ if(r>=1e6) return sig(r/1e6)+' MΩ'; if(r>=1e3) return sig(r/1e3)+' kΩ'; return sig(r)+' Ω'; }
+function fC(c){ if(c>=1e-6) return sig(c*1e6)+' µF'; return Math.round(c*1e9)+' nF'; }
+function fF(f){ if(f>=1e3) return (f/1e3).toPrecision(3)+' kHz'; return f.toPrecision(3)+' Hz'; }
+function fV(v){ const a=Math.abs(v); if(a<1) return (v*1000).toFixed(0)+' mV'; return v.toFixed(2)+' V'; }
+function fT(t){ if(t<1e-3) return sig(t*1e6)+' µs'; if(t<1) return sig(t*1e3)+' ms'; return sig(t)+' s'; }
+function fVd(v){ return v<1? Math.round(v*1000)+' mV' : v+' V'; }
+const sToF=s=>sig(Math.pow(10,1+s/100));
+const fToS=f=>Math.round(100*(Math.log10(f)-1));
+const minus=s=>String(s).replace('-','−');
+
+/* =================================================================
+   SIGNAL MODEL
+   ================================================================= */
+function wv(ph){
+  if(S.wave==='sine') return Math.sin(2*Math.PI*ph);
+  if(S.wave==='square') return ph<0.5?1:-1;
+  return ph<0.25?4*ph : ph<0.75?2-4*ph : 4*ph-4;
+}
+function activeFault(){
+  if(S.cfg!=='inv'&&S.cfg!=='non') return null;
+  if(S.fault==='mystery') return S.mystery;
+  return S.fault==='none'?null:S.fault;
+}
+/* What the circuit actually does, given any inserted fault */
+function effective(){
+  const c=S.cfg, fl=activeFault(), Rf=S.rf, Rin=S.rin;
+  if(c==='inv'){
+    if(fl==='openRf') return {kind:'cmp',pol:-1,ref:0};       // open loop, + grounded
+    if(fl==='openRin'||fl==='shortRf') return {kind:'zero'};  // no current / output tied to virtual ground
+    return {kind:'gain',K:-Rf/Rin,ng:1+Rf/Rin};
+  }
+  if(c==='non'){
+    if(fl==='openRf') return {kind:'cmp',pol:1,ref:0};        // open loop, − pulled to ground by Rin
+    if(fl) return {kind:'gain',K:1,ng:1};                     // open Rin or shorted Rf → follower
+    return {kind:'gain',K:1+Rf/Rin,ng:1+Rf/Rin};
+  }
+  if(c==='fol') return {kind:'gain',K:1,ng:1};
+  if(c==='cmp') return {kind:'cmp',pol:1,ref:S.vref};
+  return {kind:c};
+}
+/* First-order system y' = (K·x − y)/tau, started in its periodic steady state.
+   Exact exponential update; steady-state start found from one clean period. */
+let clampHit=false;
+function lp(x,K,tau,dt,clean,clamp,W){
+  // ramp-invariant (first-order-hold) discretization: exact for piecewise-linear inputs
+  const a=Math.exp(-dt/tau), om=-Math.expm1(-dt/tau), c2=tau/dt*om;
+  const u=(xn,xp)=>K*(xn-a*xp-c2*(xn-xp));
+  let yz=0, xp=clean[NP-1];
+  for(let n=0;n<NP;n++){ yz=a*yz+u(clean[n],xp); xp=clean[n]; }
+  const den=-Math.expm1(-NP*dt/tau);
+  let y=den>0? yz/den : 0;
+  if(clamp) y=Math.max(-VSAT,Math.min(VSAT,y));
+  const out=new Float64Array(x.length); xp=clean[NP-1];
+  for(let n=0;n<x.length;n++){
+    y=a*y+u(x[n],xp); xp=x[n];
+    if(clamp){ if(y>VSAT){y=VSAT; if(n>=W)clampHit=true;} else if(y<-VSAT){y=-VSAT; if(n>=W)clampHit=true;} }
+    out[n]=y;
+  }
+  return out;
+}
+function simulate(){
+  const T=1/S.f, dt=T/NP, Rf=S.rf, Rin=S.rin, C=S.c;
+  let warm=3; if(S.real) warm=Math.min(60,Math.max(3,Math.ceil(2*VSAT/SR/T)+3));
+  const W=NP*warm, L=W+NP*S.cycles+1;
+  const clean=new Float64Array(NP); for(let n=0;n<NP;n++) clean[n]=S.A*wv(n/NP);
+  const vin=new Float64Array(L);
+  for(let n=0;n<L;n++) vin[n]=clean[n%NP]+(S.noise? NOISE*2*(Math.random()+Math.random()+Math.random()-1.5):0);
+  const eff=effective();
+  let lin, clipped=false; clampHit=false;
+  if(eff.kind==='gain'){
+    lin = S.real ? lp(vin,eff.K,eff.ng/(2*Math.PI*GBW),dt,clean,false,W) : vin.map(v=>v*eff.K);
+  } else if(eff.kind==='cmp'){
+    lin = vin.map(v=>(v>eff.ref?1:-1)*eff.pol*VSAT);
+  } else if(eff.kind==='zero'){
+    lin = new Float64Array(L);
+  } else if(eff.kind==='int'){
+    lin = lp(vin,-Rf/Rin,Rf*C,dt,clean,true,W); clipped=clampHit;
+  } else { // differentiator: series Rin–Cin into virtual ground, Rf feedback
+    const vc=lp(vin,1,Rin*C,dt,clean,false,W);
+    lin=new Float64Array(L); for(let n=0;n<L;n++) lin[n]=-(Rf/Rin)*(vin[n]-vc[n]);
+  }
+  const y=new Float64Array(L);
+  for(let n=0;n<L;n++){ let v=lin[n];
+    if(v>VSAT){v=VSAT; if(n>=W)clipped=true;} else if(v<-VSAT){v=-VSAT; if(n>=W)clipped=true;}
+    y[n]=v; }
+  let out=y, slewLim=false;
+  if(S.real){
+    out=new Float64Array(L); const m=SR*dt; let z=y[0], maxD=0;
+    for(let n=0;n<L;n++){ const d=y[n]-z; z+= d>m?m : d<-m?-m : d; out[n]=z; if(n>=W) maxD=Math.max(maxD,Math.abs(z-y[n])); }
+    const ys=stats(y.subarray(W,L));
+    slewLim = maxD > 0.03*ys.pp+0.02;
+  }
+  return {vin:vin.subarray(W,L), out:out.subarray(W,L), T, clipped, slewLim, eff};
+}
+function stats(a){ let mx=-Infinity,mn=Infinity; for(const v of a){ if(v>mx)mx=v; if(v<mn)mn=v; } return {mx,mn,pp:mx-mn,pk:Math.max(Math.abs(mx),Math.abs(mn))}; }
+
+/* Design (healthy-circuit) transfer function at the fundamental */
+function Hth(){
+  if(S.cfg==='cmp') return null;
+  const w=2*Math.PI*S.f, Rf=S.rf, Rin=S.rin, C=S.c;
+  const cdiv=(a,b)=>{const d=b[0]*b[0]+b[1]*b[1]; return [(a[0]*b[0]+a[1]*b[1])/d,(a[1]*b[0]-a[0]*b[1])/d];};
+  let H;
+  if(S.cfg==='int') H=cdiv([-Rf/Rin,0],[1,w*Rf*C]);
+  else if(S.cfg==='dif') H=cdiv([0,-w*Rf*C],[1,w*Rin*C]);
+  else {
+    const K=S.cfg==='inv'?-Rf/Rin : S.cfg==='non'?1+Rf/Rin : 1;
+    const ng=S.cfg==='fol'?1:1+Rf/Rin;
+    H=[K,0]; if(S.real) H=cdiv(H,[1,w*ng/(2*Math.PI*GBW)]);
+  }
+  let ph=Math.atan2(H[1],H[0])*180/Math.PI; if(Math.abs(Math.abs(ph)-180)<0.5) ph=180;
+  return {mag:Math.hypot(H[0],H[1]), ph, H};
+}
+
+/* =================================================================
+   OSCILLOSCOPE
+   ================================================================= */
+function draw(r){
+  const cv=$('scope'), ctx=cv.getContext('2d'), dpr=window.devicePixelRatio||1;
+  const w=cv.clientWidth, h=cv.clientHeight;
+  if(!w||!h) return;
+  if(cv.width!==Math.round(w*dpr)||cv.height!==Math.round(h*dpr)){ cv.width=Math.round(w*dpr); cv.height=Math.round(h*dpr); }
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.fillStyle='#08141b'; ctx.fillRect(0,0,w,h);
+  const dx=w/10, dy=h/8;
+  ctx.lineWidth=1; ctx.strokeStyle='rgba(120,170,200,.14)';
+  for(let i=1;i<10;i++){ ctx.beginPath(); ctx.moveTo(Math.round(i*dx)+.5,0); ctx.lineTo(Math.round(i*dx)+.5,h); ctx.stroke(); }
+  for(let j=1;j<8;j++){ ctx.beginPath(); ctx.moveTo(0,Math.round(j*dy)+.5); ctx.lineTo(w,Math.round(j*dy)+.5); ctx.stroke(); }
+  ctx.strokeStyle='rgba(150,195,220,.38)';
+  ctx.beginPath(); ctx.moveTo(0,h/2); ctx.lineTo(w,h/2); ctx.moveTo(w/2,0); ctx.lineTo(w/2,h); ctx.stroke();
+  for(let k=1;k<50;k++){ const x=k*dx/5; ctx.beginPath(); ctx.moveTo(x,h/2-3); ctx.lineTo(x,h/2+3); ctx.stroke(); }
+  for(let k=1;k<40;k++){ const y=k*dy/5; ctx.beginPath(); ctx.moveTo(w/2-3,y); ctx.lineTo(w/2+3,y); ctx.stroke(); }
+
+  const si=stats(r.vin), so=stats(r.out);
+  let vd;
+  if(S.vdiv==='auto'){ const vmax=Math.max(si.pk,so.pk,0.02); vd=[0.01,0.02,0.05,0.1,0.2,0.5,1,2,5].find(v=>vmax<=3.7*v)||5; }
+  else vd=+S.vdiv;
+  const Y=v=>h/2-v/vd*dy;
+  ctx.font='11px Arial';
+  if(VSAT/vd<=4.3){
+    ctx.strokeStyle='rgba(224,96,80,.6)'; ctx.setLineDash([6,5]);
+    [VSAT,-VSAT].forEach(v=>{ ctx.beginPath(); ctx.moveTo(0,Y(v)); ctx.lineTo(w,Y(v)); ctx.stroke(); });
+    ctx.setLineDash([]); ctx.fillStyle='rgba(240,130,115,.95)';
+    ctx.fillText('+Vsat  +12 V',8,Y(VSAT)-5); ctx.fillText('−Vsat  −12 V',8,Y(-VSAT)+14);
+  }
+  if(S.cfg==='cmp'){
+    ctx.strokeStyle='#8ab6ff'; ctx.setLineDash([3,4]);
+    ctx.beginPath(); ctx.moveTo(0,Y(S.vref)); ctx.lineTo(w,Y(S.vref)); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='#8ab6ff'; ctx.textAlign='right'; ctx.fillText('VREF '+minus(S.vref.toFixed(1))+' V',w-8,Y(S.vref)-5); ctx.textAlign='left';
+  }
+  function trace(a,col,lw){
+    ctx.save(); ctx.strokeStyle=col; ctx.lineWidth=lw; ctx.shadowColor=col; ctx.shadowBlur=7; ctx.lineJoin='round';
+    ctx.beginPath(); const n=a.length;
+    for(let i=0;i<n;i++){ const x=i/(n-1)*w, y=Y(a[i]); i?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+    ctx.stroke(); ctx.restore();
+  }
+  trace(r.vin,'#f0b545',1.6);
+  trace(r.out,'#2ecc8f',2.3);
+
+  // on-screen annotations
+  ctx.fillStyle='rgba(0,0,0,.55)'; ctx.fillRect(0,h-22,w,22);
+  ctx.font='bold 12px "Courier New",monospace'; ctx.textBaseline='middle';
+  ctx.fillStyle='#f0b545'; ctx.fillText('CH1 '+fVd(vd)+'/div',8,h-11);
+  ctx.fillStyle='#2ecc8f'; ctx.fillText('CH2 '+fVd(vd)+'/div',w<460?8+118:150,w<460?h-11:h-11);
+  ctx.fillStyle='#cfe0f2'; ctx.textAlign='right'; ctx.fillText(fT(S.cycles*r.T/10)+'/div   '+fF(S.f),w-8,h-11);
+  ctx.textBaseline='alphabetic';
+  ctx.font='11px Arial'; ctx.fillStyle='rgba(207,224,242,.8)'; ctx.fillText(CFG[S.cfg].name,w-8,16);
+  ctx.textAlign='left'; ctx.fillText('Trig CH1 ↑ 0 V',8,16);
+  cv.setAttribute('aria-label','Oscilloscope: '+CFG[S.cfg].name+'. Input '+fV(si.pk)+' peak '+S.wave+' at '+fF(S.f)+'; output '+fV(so.pp)+' peak to peak.');
+}
+
+/* =================================================================
+   READOUTS, STATUS, THEORY
+   ================================================================= */
+function readouts(r){
+  const si=stats(r.vin), so=stats(r.out), h=Hth(), fl=activeFault(), eff=r.eff;
+  const resistive=(S.cfg==='inv'||S.cfg==='non'||S.cfg==='fol');
+  $('m1').textContent=fV(si.pk);
+  $('m2').textContent=fV(so.pp);
+  if(S.cfg==='cmp'){
+    let hi=0; for(const v of r.out) if(v>0) hi++;
+    $('m3l').textContent='Output high time'; $('m3').textContent=(100*hi/r.out.length).toFixed(1)+' %';
+    $('m4l').innerHTML='V<sub>REF</sub>'; $('m4').textContent=minus(S.vref.toFixed(1))+' V';
+    $('m5l').textContent='Output transition';
+    $('m5').textContent=S.real? 'about '+Math.round(2*VSAT/SR*1e6)+' µs' : 'instant (ideal)';
+  } else {
+    $('m3l').textContent='Measured gain (p-p ratio)'; $('m3').textContent=si.pp>0? '×'+(so.pp/si.pp).toFixed(2) : '–';
+    $('m4l').textContent='Design gain at this frequency';
+    $('m4').textContent=(resistive&&!S.real)? minus(h.H[0].toFixed(2)) : '×'+h.mag.toFixed(2);
+    $('m5l').textContent=S.wave==='sine'?'Phase shift':'Phase shift (fundamental)';
+    $('m5').textContent=minus(Math.round(h.ph))+'°';
+  }
+  let zin;
+  if(S.cfg==='inv'||S.cfg==='int') zin=fR(S.rin);
+  else if(S.cfg==='dif'){ const xc=1/(2*Math.PI*S.f*S.c); zin=fR(Math.hypot(S.rin,xc))+' at f'; }
+  else zin='very high (MΩ+)';
+  $('m6').textContent=zin;
+
+  // status LED
+  let cls='ok', txt='Linear';
+  if(S.cfg==='cmp'){ cls='info'; txt=r.slewLim?'Switching, slew-limited':'Switching'; }
+  else if(eff.kind==='cmp'){ cls='bad'; txt='Saturated rail to rail'; }
+  else if(eff.kind==='zero'||(so.pp<0.02&&si.pp>0.1)){ cls='bad'; txt='No output'; }
+  else if(r.clipped){ cls='bad'; txt='Clipping at the rails'; }
+  else if(r.slewLim){ cls='warn'; txt='Slew-rate limited'; }
+  $('led').className='led '+cls; $('statusTxt').textContent=txt;
+
+  // troubleshooting alert
+  const box=$('alertBox'), rb=$('revealBtn');
+  let msg='';
+  if(resistive && !S.noise && si.pp>0){
+    const meas=so.pp/si.pp, mismatch=Math.abs(meas/h.mag-1)>0.1;
+    if(fl && (mismatch||eff.kind==='cmp') ){
+      msg='Measured gain is ×'+meas.toFixed(2)+', but these resistors should give ×'+h.mag.toFixed(2)+'. The circuit doesn’t match its schematic. ';
+      msg+= S.fault==='mystery' ? 'Use the symptom on the scope to name the fault.' : 'Fault inserted: '+faultName(fl)+'.';
+    }
+  }
+  box.classList.toggle('show',!!msg);
+  $('alertTxt').textContent=msg;
+  rb.hidden=!(msg&&S.fault==='mystery');
+}
+function faultName(f){ return {openRf:'open Rf',openRin:'open Rin',shortRf:'shorted Rf'}[f]||''; }
+
+const THEORY={
+  inv:{eq:'A<sub>V</sub> = −R<sub>f</sub> / R<sub>in</sub>',
+    body:'The signal enters the − input through R<sub>in</sub> while the + input is grounded. Negative feedback holds the − input at 0 V, the virtual ground, so all of the input current V<sub>in</sub>/R<sub>in</sub> must flow through R<sub>f</sub>. The resistor ratio sets the gain and the output is flipped 180°.',
+    tip:'A healthy inverting stage measures about 0 V DC at the − pin. Several volts there means feedback is broken and the output is sitting at a rail.'},
+  non:{eq:'A<sub>V</sub> = 1 + R<sub>f</sub> / R<sub>in</sub>',
+    body:'The signal drives the + input directly. R<sub>f</sub> and R<sub>in</sub> divide the output down to the − input, and feedback makes that divided voltage equal V<sub>in</sub>. The output stays in phase, the gain can never drop below 1, and the source sees the op-amp’s very high input impedance.',
+    tip:'Same resistors, different answer: R<sub>f</sub> = R<sub>in</sub> gives −1 inverting but +2 non-inverting. Check where the signal enters before you calculate.'},
+  fol:{eq:'A<sub>V</sub> = 1',
+    body:'The output is wired straight to the − input: 100% feedback. The output follows the input exactly, but the input impedance is huge and the output impedance is tiny. It is a buffer between a weak source and a load that needs current.',
+    tip:'If a follower’s output doesn’t match its input, suspect the load drawing too much current or a supply problem before you replace the op-amp.'},
+  cmp:{eq:'V<sub>out</sub> = +V<sub>sat</sub> when V<sub>in</sub> &gt; V<sub>REF</sub>, otherwise −V<sub>sat</sub>',
+    body:'There is no feedback. The full open-loop gain drives the output to +V<sub>sat</sub> whenever the + input is above V<sub>REF</sub> on the − input, and to −V<sub>sat</sub> when it is below. An analog level goes in and a two-state decision comes out.',
+    tip:'Slow, noisy signals make a plain comparator chatter at the threshold. Try a 100 Hz triangle with input noise on. The fix is hysteresis: a Schmitt trigger.'},
+  int:{eq:'V<sub>out</sub> = −(1 / R<sub>in</sub>C<sub>f</sub>) ∫ V<sub>in</sub> dt',
+    body:'A capacitor replaces the feedback resistor. The input current V<sub>in</sub>/R<sub>in</sub> charges C<sub>f</sub>, so the output ramps at a rate set by the input level: square in, triangle out. R<sub>f</sub> here is the bleed resistor every practical integrator needs so tiny DC offsets can’t ramp the output into a rail.',
+    tip:'Integration only works well above f<sub>c</sub> = 1/(2πR<sub>f</sub>C<sub>f</sub>). Lower R<sub>f</sub> until f<sub>c</sub> passes your signal frequency and watch the triangle turn back into a square.'},
+  dif:{eq:'V<sub>out</sub> = −R<sub>f</sub>C<sub>in</sub> · dV<sub>in</sub>/dt',
+    body:'The capacitor moves to the input. Current flows only while the input is changing, so the output reports the input’s slope: triangle in, square out, and square-wave edges become spikes. The small series R<sub>in</sub> caps the gain at high frequency, which keeps the circuit stable and limits noise.',
+    tip:'Differentiators amplify fast noise. Turn on input noise to see why the series resistor matters, then try a larger R<sub>in</sub>.'}
+};
+function theory(){
+  const t=THEORY[S.cfg], Rf=S.rf, Rin=S.rin, C=S.c, f=S.f;
+  $('thTitle').textContent='How the '+CFG[S.cfg].name.toLowerCase()+' works';
+  $('thEq').innerHTML=t.eq; $('thBody').innerHTML=t.body; $('thTip').innerHTML=t.tip;
+  const rows=[];
+  const bw=ng=>fF(GBW/ng);
+  if(S.cfg==='inv'){ rows.push(['Gain from your resistors',minus((-Rf/Rin).toFixed(2))],['Input impedance',fR(Rin)],['741 closed-loop bandwidth',bw(1+Rf/Rin)]); }
+  if(S.cfg==='non'){ rows.push(['Gain from your resistors','+'+(1+Rf/Rin).toFixed(2)],['Input impedance','very high'],['741 closed-loop bandwidth',bw(1+Rf/Rin)]); }
+  if(S.cfg==='fol'){ rows.push(['Gain','+1.00'],['Input / output impedance','very high / very low'],['741 bandwidth',bw(1)]); }
+  if(S.cfg==='cmp'){
+    rows.push(['Reference',minus(S.vref.toFixed(1))+' V'],['Output levels','±12 V']);
+    rows.push(['Does the output switch?', Math.abs(S.vref)>=S.A? 'No: V_REF is outside the input swing':'Yes, twice per cycle']);
+  }
+  if(S.cfg==='int'){
+    const fu=1/(2*Math.PI*Rin*C), fc=1/(2*Math.PI*Rf*C), k=f/fc;
+    rows.push(['Unity-gain frequency 1/(2πR<sub>in</sub>C)',fF(fu)],['Lower limit f<sub>c</sub> = 1/(2πR<sub>f</sub>C)',fF(fc)]);
+    rows.push(['At your frequency', k>=10?'Integrating well (f ≥ 10 f<sub>c</sub>)': k<=1?'Below f<sub>c</sub>: acting like an inverting amp':'Transition region']);
+  }
+  if(S.cfg==='dif'){
+    const fc=1/(2*Math.PI*Rin*C), k=f/fc;
+    rows.push(['Time constant R<sub>f</sub>C',fT(Rf*C)],['Upper limit f<sub>c</sub> = 1/(2πR<sub>in</sub>C)',fF(fc)]);
+    rows.push(['At your frequency', k<=0.1?'Differentiating well (f ≤ f<sub>c</sub>/10)': k>=1?'Above f<sub>c</sub>: acting like an inverting amp':'Transition region']);
+  }
+  $('thVals').innerHTML=rows.map(r=>'<li><span>'+r[0]+'</span><span>'+r[1]+'</span></li>').join('');
+}
+
+/* =================================================================
+   SCHEMATIC
+   ================================================================= */
+function schematic(){
+  const c=S.cfg, shown=S.fault==='mystery'?null:activeFault();
+  const W=(pts)=>`<polyline class="w" points="${pts}"/>`;
+  const D=(x,y)=>`<circle class="dot" cx="${x}" cy="${y}" r="3"/>`;
+  const T=(x,y,s,cls='',anchor='start')=>`<text x="${x}" y="${y}" class="${cls}" text-anchor="${anchor}">${s}</text>`;
+  const Rz=(xa,xb,y,lab,pos,fault)=>{ const m=(xa+xb)/2;
+    return W(`${xa},${y} ${m-20},${y}`)+`<path class="cmp${fault?' fault':''}" d="M${m-20},${y} l3.33,-7 6.67,14 6.67,-14 6.67,14 6.67,-14 6.67,14 3.33,-7"/>`+W(`${m+20},${y} ${xb},${y}`)+
+      T(m,pos==='above'?y-12:y+24,lab,fault?'flt':'','middle'); };
+  const Cp=(xa,xb,y,lab,pos)=>{ const m=(xa+xb)/2;
+    return W(`${xa},${y} ${m-5},${y}`)+`<line class="cmp" x1="${m-5}" y1="${y-12}" x2="${m-5}" y2="${y+12}"/><line class="cmp" x1="${m+5}" y1="${y-12}" x2="${m+5}" y2="${y+12}"/>`+W(`${m+5},${y} ${xb},${y}`)+
+      T(m,pos==='above'?y-17:y+27,lab,'','middle'); };
+  const G=(x,y)=>W(`${x},${y} ${x},${y+10}`)+W(`${x-9},${y+10} ${x+9},${y+10}`)+W(`${x-6},${y+15} ${x+6},${y+15}`)+W(`${x-3},${y+20} ${x+3},${y+20}`);
+  const P=(x,y,ch)=>`<circle cx="${x}" cy="${y}" r="5.5" fill="${ch==='CH1'?'#e8a020':'#00a86b'}"/>`+T(x,y-10,ch,'probe','middle');
+  const OA=`<polygon class="oa" points="170,90 170,190 270,140"/>`+T(176,121,'−','pm')+T(176,171,'+','pm');
+  const OUT=W('270,140 385,140')+D(330,140)+P(385,140,'CH2')+T(385,162,'Vout','','end');
+  const GND_PLUS=W('170,165 150,165 150,180')+G(150,180);
+  const rfF=shown==='openRf'||shown==='shortRf', rinF=shown==='openRin';
+  const rfLab='Rf '+fR(S.rf)+(shown==='openRf'?' (OPEN)':shown==='shortRf'?' (SHORTED)':'');
+  const rinLab='Rin '+fR(S.rin)+(rinF?' (OPEN)':'');
+  const SHORT=shown==='shortRf'?`<path d="M150,60 Q235,34 320,60" stroke="var(--red)" stroke-width="2.4" fill="none"/>`:'';
+  let s=OA;
+  if(c==='inv'){
+    s+=P(15,115,'CH1')+T(15,138,'Vin','','start')+Rz(15,125,115,rinLab,'below',rinF)+W('125,115 170,115')+D(140,115)+
+       W('140,115 140,60')+Rz(140,330,60,rfLab,'above',rfF)+SHORT+W('330,60 330,140')+GND_PLUS+T(136,103,'virtual ground','muted','end')+OUT;
+  }
+  if(c==='non'){
+    s+=W('60,165 170,165')+P(60,165,'CH1')+T(20,170,'Vin')+Rz(40,130,115,rinLab,'below',rinF)+G(40,115)+W('130,115 170,115')+D(140,115)+
+       W('140,115 140,60')+Rz(140,330,60,rfLab,'above',rfF)+SHORT+W('330,60 330,140')+OUT;
+  }
+  if(c==='fol'){
+    s+=W('15,165 170,165')+P(15,165,'CH1')+T(15,188,'Vin')+W('330,140 330,60 140,60 140,115 170,115')+T(235,52,'100% feedback: output wired to −','muted','middle')+OUT;
+  }
+  if(c==='cmp'){
+    s+=W('15,165 170,165')+P(15,165,'CH1')+T(15,188,'Vin (signal)')+W('60,115 170,115')+D(60,115)+T(60,104,'VREF = '+minus(S.vref.toFixed(1))+' V','','start')+
+       T(220,68,'no feedback: open loop','muted','middle')+OUT;
+  }
+  if(c==='int'){
+    s+=P(15,115,'CH1')+T(15,138,'Vin')+Rz(15,125,115,'Rin '+fR(S.rin),'below')+W('125,115 170,115')+D(140,115)+
+       W('140,115 140,24')+Cp(140,330,60,'Cf '+fC(S.c),'below')+Rz(140,330,24,'Rf '+fR(S.rf)+' (bleed)','above')+D(140,60)+D(330,60)+W('330,24 330,140')+GND_PLUS+OUT;
+  }
+  if(c==='dif'){
+    s+=P(15,115,'CH1')+T(15,138,'Vin')+Rz(15,80,115,'Rin '+fR(S.rin),'below')+Cp(80,128,115,'Cin '+fC(S.c),'above')+W('128,115 170,115')+D(140,115)+
+       W('140,115 140,60')+Rz(140,330,60,'Rf '+fR(S.rf),'above')+W('330,60 330,140')+GND_PLUS+OUT;
+  }
+  $('schemTitle').textContent='Schematic: '+CFG[c].name;
+  $('schemBox').innerHTML=`<svg viewBox="0 0 400 210" role="img" aria-label="Schematic of the ${CFG[c].name}">${s}</svg>`;
+}
+
+/* =================================================================
+   CONTROL SYNC
+   ================================================================= */
+function syncControls(){
+  document.querySelectorAll('#cfgRow .cfg-btn').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cfg===S.cfg));
+  document.querySelectorAll('#waveSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.wave===S.wave));
+  document.querySelectorAll('#cycSeg button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.cyc===S.cycles));
+  $('freq').value=fToS(S.f); $('freqVal').textContent=fF(S.f);
+  $('amp').value=S.A; $('ampVal').textContent=S.A.toFixed(1)+' V';
+  $('rf').value=RV.indexOf(S.rf); $('rfVal').textContent=fR(S.rf);
+  $('rin').value=RV.indexOf(S.rin); $('rinVal').textContent=fR(S.rin);
+  $('cap').value=String(S.c); $('vref').value=S.vref; $('refVal').textContent=minus(S.vref.toFixed(1))+' V';
+  $('real').checked=S.real; $('noise').checked=S.noise; $('vdiv').value=S.vdiv; $('fault').value=S.fault;
+  const c=S.cfg, usesR=['inv','non','int','dif'].includes(c);
+  $('rfCtrl').hidden=!usesR; $('rinCtrl').hidden=!usesR;
+  $('capCtrl').hidden=!(c==='int'||c==='dif'); $('refCtrl').hidden=c!=='cmp';
+  $('faultCtrl').hidden=!(c==='inv'||c==='non');
+  $('rfLbl').innerHTML = c==='int'?'R<sub>f</sub> (bleed, across C<sub>f</sub>)':'R<sub>f</sub> (feedback)';
+  $('rinLbl').innerHTML = c==='dif'?'R<sub>in</sub> (in series with C<sub>in</sub>)':'R<sub>in</sub> (input)';
+  $('capLbl').innerHTML = c==='int'?'C<sub>f</sub> (feedback capacitor)':'C<sub>in</sub> (input capacitor)';
+  const note=$('ctrlNote');
+  if(c==='fol'){ note.hidden=false; note.textContent='The follower needs no resistors: the output connects straight to the − input. Rf and Rin don’t apply here.'; }
+  else if(c==='cmp'){ note.hidden=false; note.textContent='A comparator has no feedback network, so Rf and Rin don’t apply. Set the reference voltage instead.'; }
+  else note.hidden=true;
+}
+function update(){
+  syncControls();
+  lastR=simulate(); draw(lastR); readouts(lastR); schematic(); theory();
+  manageNoise();
+}
+function manageNoise(){
+  if(S.noise && !noiseTimer && !document.hidden){
+    noiseTimer=setInterval(()=>{ lastR=simulate(); draw(lastR); readouts(lastR); }, reduceMotion?600:120);
+  } else if((!S.noise||document.hidden) && noiseTimer){ clearInterval(noiseTimer); noiseTimer=null; }
+}
+function setCfg(c){
+  if(!CFG[c]) return;
+  S.cfg=c; S.fault='none'; S.mystery=null;
+  try{ history.replaceState(null,'','#'+CFG[c].hash); }catch(e){}
+  update();
+}
+function pickMystery(){ const f=['openRf','openRin','shortRf']; S.mystery=f[Math.floor(Math.random()*f.length)]; }
+
+/* =================================================================
+   GUIDED LABS
+   ================================================================= */
+const LABS=[
+ {t:'1. Read the gain from the resistors', p:{cfg:'inv'},
+  q:'An inverting amp has R<sub>f</sub> = 22 kΩ and R<sub>in</sub> = 10 kΩ with a 1 V peak, 1 kHz sine in. Predict the output peak and its phase.',
+  a:'A<sub>V</sub> = −22k/10k = −2.2, so the output is 2.2 V peak (4.4 V p-p), 180° out of phase. The traces peak at opposite times.'},
+ {t:'2. Find the “+1”', p:{cfg:'non'},
+  q:'Same resistors, same input, non-inverting configuration. Predict the output.',
+  a:'1 + 22k/10k = 3.2, so 3.2 V peak, in phase. Same parts, different configuration, different answer.'},
+ {t:'3. Drive it into the rails', p:{cfg:'inv',A:2,rf:100000},
+  q:'Gain −10 with a 2 V peak input. What does the output look like, and what are two ways to fix it?',
+  a:'The stage asks for 20 V peak but can only reach ±12 V, so the peaks are flattened (clipped). Drop the input below 1.2 V peak, or reduce R<sub>f</sub> to cut the gain.'},
+ {t:'4. Buffer a weak source', p:{cfg:'fol',A:3},
+  q:'What will the follower’s gain and phase be? If the voltage doesn’t change, what is the circuit for?',
+  a:'Gain 1, 0°: the green trace lands on top of the amber one. The value is impedance: very high in, very low out, so a weak sensor can drive a real load.'},
+ {t:'5. Move the slice level', p:{cfg:'cmp',A:3,vref:1},
+  q:'A 3 V peak sine on the + input, V<sub>REF</sub> = +1 V. Predict the output’s high time as a percentage.',
+  a:'The output is high only while the sine is above 1 V: (π − 2·sin⁻¹(1/3)) / 2π ≈ 39%. Slide V<sub>REF</sub> past ±3 V and the output never switches.'},
+ {t:'6. Watch a noisy threshold chatter', p:{cfg:'cmp',wave:'tri',f:100,A:1,noise:true,cycles:2},
+  q:'A slow triangle with noise crosses a 0 V threshold. Predict what the output does near each crossing.',
+  a:'The noise pushes the input back and forth across V<sub>REF</sub>, so the output toggles many times per crossing. That chatter is why real comparators use hysteresis (Schmitt trigger).'},
+ {t:'7. Integrate a square wave', p:{cfg:'int',wave:'square',A:2,rf:1000000,rin:10000,c:1e-8},
+  q:'2 V peak, 1 kHz square into R<sub>in</sub> = 10 kΩ, C<sub>f</sub> = 10 nF. Predict the output shape and its peak-to-peak voltage.',
+  a:'Each half-cycle is a constant input, so the output ramps at 2 V / (10 kΩ × 10 nF) = 20 V/ms for 0.5 ms: a 10 V p-p inverted triangle. Then drop R<sub>f</sub> to 10 kΩ and watch it round off.'},
+ {t:'8. Differentiate a triangle', p:{cfg:'dif',wave:'tri',A:2,rf:47000,rin:1000,c:1e-8},
+  q:'2 V peak, 1 kHz triangle; R<sub>f</sub> = 47 kΩ, C<sub>in</sub> = 10 nF. Predict the output shape and level.',
+  a:'The triangle’s slope is ±4·A·f = ±8 V/ms. V<sub>out</sub> = −R<sub>f</sub>C × slope ≈ ∓3.8 V: a square wave. Switch to a square input to see edge spikes.'},
+ {t:'9. Find the 741 bandwidth limit', p:{cfg:'inv',f:20000,A:0.1,rf:1000000,rin:10000,real:true},
+  q:'A gain −100 inverting amp built with a 741 (GBW 1 MHz) at 20 kHz. Is the gain still 100?',
+  a:'No. Closed-loop bandwidth is 1 MHz / 101 ≈ 9.9 kHz, so at 20 kHz the gain falls to about 45 with extra phase shift. Uncheck “Real 741 behavior” to compare with the ideal.'},
+ {t:'10. Troubleshoot a mystery fault', p:{cfg:'inv',fault:'mystery'},
+  q:'This inverting stage should have a gain of −2.2. Measure it, describe the symptom, and name the faulty part.',
+  a:'Output slammed rail to rail and inverted: open R<sub>f</sub> (no feedback). Flat 0 V output: open R<sub>in</sub> or shorted R<sub>f</sub> (on the bench, check whether the source is loaded). Use “Reveal the fault” to confirm, then try it in non-inverting mode.'}
+];
+function buildLabs(){
+  $('labGrid').innerHTML=LABS.map((l,i)=>`<div class="lab"><h4>${l.t}</h4><p>${l.q}</p><div class="lab-actions"><button type="button" data-lab="${i}">Load this setup</button><details><summary>Check your prediction</summary><div>${l.a}</div></details></div></div>`).join('');
+}
+function loadLab(i){
+  const p=Object.assign({},DEF,{cycles:2},LABS[i].p);
+  Object.assign(S,{cfg:p.cfg,wave:p.wave,f:p.f,A:p.A,rf:p.rf,rin:p.rin,c:p.c,vref:p.vref,real:p.real,noise:p.noise,fault:p.fault,cycles:p.cycles,vdiv:'auto',mystery:null});
+  if(S.fault==='mystery') pickMystery();
+  try{ history.replaceState(null,'','#'+CFG[S.cfg].hash); }catch(e){}
+  update();
+  $('sim').scrollIntoView({behavior:reduceMotion?'auto':'smooth',block:'start'});
+}
+
+/* =================================================================
+   EVENTS
+   ================================================================= */
+document.querySelectorAll('#cfgRow .cfg-btn').forEach(b=>b.addEventListener('click',()=>setCfg(b.dataset.cfg)));
+document.querySelectorAll('#waveSeg button').forEach(b=>b.addEventListener('click',()=>{S.wave=b.dataset.wave;update();}));
+document.querySelectorAll('#cycSeg button').forEach(b=>b.addEventListener('click',()=>{S.cycles=+b.dataset.cyc;update();}));
+$('freq').addEventListener('input',e=>{S.f=sToF(+e.target.value);update();});
+$('amp').addEventListener('input',e=>{S.A=+e.target.value;update();});
+$('rf').max=RV.length-1; $('rin').max=RV.length-1;
+$('rf').addEventListener('input',e=>{S.rf=RV[+e.target.value];update();});
+$('rin').addEventListener('input',e=>{S.rin=RV[+e.target.value];update();});
+$('cap').addEventListener('change',e=>{S.c=+e.target.value;update();});
+$('vref').addEventListener('input',e=>{S.vref=+e.target.value;update();});
+$('real').addEventListener('change',e=>{S.real=e.target.checked;update();});
+$('noise').addEventListener('change',e=>{S.noise=e.target.checked;update();});
+$('vdiv').addEventListener('change',e=>{S.vdiv=e.target.value;update();});
+$('fault').addEventListener('change',e=>{S.fault=e.target.value; if(S.fault==='mystery') pickMystery(); else S.mystery=null; update();});
+$('revealBtn').addEventListener('click',()=>{ $('alertTxt').textContent+=' Answer: '+faultName(S.mystery)+'.'; $('revealBtn').hidden=true; });
+$('labGrid').addEventListener('click',e=>{ const b=e.target.closest('button[data-lab]'); if(b) loadLab(+b.dataset.lab); });
+document.querySelectorAll('.acc-head').forEach(b=>b.addEventListener('click',()=>{
+  const a=$(b.dataset.acc); a.classList.toggle('open'); b.setAttribute('aria-expanded',a.classList.contains('open'));
+}));
+window.addEventListener('resize',()=>{ if(lastR) draw(lastR); });
+window.addEventListener('hashchange',()=>{ const c=hashToCfg(); if(c&&c!==S.cfg) setCfg(c); });
+document.addEventListener('visibilitychange',manageNoise);
+function hashToCfg(){ const h=location.hash.slice(1); return Object.keys(CFG).find(k=>CFG[k].hash===h); }
+
+/* ============ THEME (defaults to light; shares the course's elt-theme key) ============ */
+function syncThemeBtn(){
+  const d=document.documentElement.getAttribute('data-theme')==='dark';
+  $('themeBtn').textContent=d?'🌓 Light mode':'🌓 Dark mode';
+  $('themeBtn').setAttribute('aria-pressed',d);
+}
+$('themeBtn').addEventListener('click',()=>{
+  const d=document.documentElement.getAttribute('data-theme')==='dark';
+  if(d) document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme','dark');
+  try{ localStorage.setItem('elt-theme',d?'light':'dark'); }catch(e){}
+  syncThemeBtn();
+});
+
+/* ============ INIT ============ */
+buildLabs(); syncThemeBtn();
+const startCfg=hashToCfg(); if(startCfg) S.cfg=startCfg;
+update();
+</script>
+</body>
+</html>
