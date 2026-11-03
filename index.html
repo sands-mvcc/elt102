@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -406,6 +405,14 @@
     text-align: right;
   }
 
+  /* ─── Learning Activity Cards (domain-colored accent) ───────── */
+  .activity-card { border-left: 4px solid var(--green-bright); }
+  .activity-card.acc-semi    { border-left-color: var(--green-bright); }
+  .activity-card.acc-active  { border-left-color: #1976d2; }
+  .activity-card.acc-logic   { border-left-color: #e65100; }
+  .activity-card.acc-digital { border-left-color: #7b1fa2; }
+  .activity-card .card-top { margin-bottom: 0; }
+
   /* ─── CLO Section ───────────────────────────────────────────── */
   .clo-box {
     background: var(--surface);
@@ -548,7 +555,63 @@
     <div>Select a lesson below to begin. Each lesson covers one day of instruction across both analog solid-state devices and digital logic systems. Lab files, simulators, and exam resources are accessible from the sections below.</div>
   </div>
 
-  <!-- ── LESSONS ─────────────────────────────────────────────── -->
+  <!-- ── 1. COURSE LEARNING OUTCOMES ────────────────────────── -->
+  <div class="section-header">
+    <span class="sec-icon">🎯</span>
+    <h2>Course Learning Outcomes</h2>
+  </div>
+  <p class="section-sub">Upon successful completion of ELT 102-350, students will be able to:</p>
+  <div class="clo-box">
+    <h3>Student Learning Outcomes (SLOs)</h3>
+    <ul class="clo-list">
+      <li>
+        <span class="clo-num">1</span>
+        <span>Explain semiconductor physics including atomic structure, doping, and P-N junction behavior to analyze diode operation in forward and reverse bias conditions.</span>
+      </li>
+      <li>
+        <span class="clo-num">2</span>
+        <span>Design and analyze diode circuits including half-wave and full-wave rectifiers, capacitive filter networks, and voltage regulator stages, and measure waveforms using an oscilloscope.</span>
+      </li>
+      <li>
+        <span class="clo-num">3</span>
+        <span>Describe the operating characteristics of optoelectronic devices (LEDs, photodiodes, optocouplers) and select appropriate devices for optical isolation applications.</span>
+      </li>
+      <li>
+        <span class="clo-num">4</span>
+        <span>Analyze BJT, JFET, MOSFET, SCR, and TRIAC operation in switching and amplification circuits, applying DC load line analysis and biasing calculations.</span>
+      </li>
+      <li>
+        <span class="clo-num">5</span>
+        <span>Design and evaluate small-signal transistor amplifier circuits and operational amplifier configurations, calculating voltage gain, input/output impedance, and bandwidth.</span>
+      </li>
+      <li>
+        <span class="clo-num">6</span>
+        <span>Perform conversions between binary, octal, decimal, and hexadecimal number systems, apply signed binary arithmetic using 2's complement, and solve Boolean algebra expressions.</span>
+      </li>
+      <li>
+        <span class="clo-num">7</span>
+        <span>Design and minimize combinational logic circuits using truth tables, Boolean simplification, and Karnaugh Maps, and implement designs using standard gate ICs.</span>
+      </li>
+      <li>
+        <span class="clo-num">8</span>
+        <span>Analyze sequential logic circuits including SR, D, and JK flip-flops, and apply them to the design of registers, latches, and state machines.</span>
+      </li>
+      <li>
+        <span class="clo-num">9</span>
+        <span>Construct and test encoder, decoder, multiplexer, and A/D–D/A converter circuits, explaining the role of each in data conversion and digital communications systems.</span>
+      </li>
+      <li>
+        <span class="clo-num">10</span>
+        <span>Build and measure asynchronous/synchronous counter circuits and 555-based timer/oscillator circuits, calculating frequency, duty cycle, and RC time constants.</span>
+      </li>
+      <li>
+        <span class="clo-num">11</span>
+        <span>Demonstrate safe lab practices, accurate circuit construction on breadboards, and correct use of multimeters, oscilloscopes, and function generators to troubleshoot electronic circuits.</span>
+      </li>
+    </ul>
+  </div>
+
+  <!-- ── 2. LESSONS ─────────────────────────────────────────── -->
   <div class="section-header">
     <span class="sec-icon">📚</span>
     <h2>Course Lessons — 8 Days</h2>
@@ -662,99 +725,133 @@
 
   </div><!-- /lesson-grid -->
 
-  <!-- ── COURSE LEARNING OUTCOMES ───────────────────────────── -->
+  <!-- ── 3. LEARNING ACTIVITIES (NEW) ───────────────────────── -->
   <div class="section-header">
-    <span class="sec-icon">🎯</span>
-    <h2>Course Learning Outcomes</h2>
+    <span class="sec-icon">🧩</span>
+    <h2>Learning Activities</h2>
   </div>
-  <p class="section-sub">Upon successful completion of ELT 102-350, students will be able to:</p>
-  <div class="clo-box">
-    <h3>Student Learning Outcomes (SLOs)</h3>
-    <ul class="clo-list">
-      <li>
-        <span class="clo-num">1</span>
-        <span>Explain semiconductor physics including atomic structure, doping, and P-N junction behavior to analyze diode operation in forward and reverse bias conditions.</span>
-      </li>
-      <li>
-        <span class="clo-num">2</span>
-        <span>Design and analyze diode circuits including half-wave and full-wave rectifiers, capacitive filter networks, and voltage regulator stages, and measure waveforms using an oscilloscope.</span>
-      </li>
-      <li>
-        <span class="clo-num">3</span>
-        <span>Describe the operating characteristics of optoelectronic devices (LEDs, photodiodes, optocouplers) and select appropriate devices for optical isolation applications.</span>
-      </li>
-      <li>
-        <span class="clo-num">4</span>
-        <span>Analyze BJT, JFET, MOSFET, SCR, and TRIAC operation in switching and amplification circuits, applying DC load line analysis and biasing calculations.</span>
-      </li>
-      <li>
-        <span class="clo-num">5</span>
-        <span>Design and evaluate small-signal transistor amplifier circuits and operational amplifier configurations, calculating voltage gain, input/output impedance, and bandwidth.</span>
-      </li>
-      <li>
-        <span class="clo-num">6</span>
-        <span>Perform conversions between binary, octal, decimal, and hexadecimal number systems, apply signed binary arithmetic using 2's complement, and solve Boolean algebra expressions.</span>
-      </li>
-      <li>
-        <span class="clo-num">7</span>
-        <span>Design and minimize combinational logic circuits using truth tables, Boolean simplification, and Karnaugh Maps, and implement designs using standard gate ICs.</span>
-      </li>
-      <li>
-        <span class="clo-num">8</span>
-        <span>Analyze sequential logic circuits including SR, D, and JK flip-flops, and apply them to the design of registers, latches, and state machines.</span>
-      </li>
-      <li>
-        <span class="clo-num">9</span>
-        <span>Construct and test encoder, decoder, multiplexer, and A/D–D/A converter circuits, explaining the role of each in data conversion and digital communications systems.</span>
-      </li>
-      <li>
-        <span class="clo-num">10</span>
-        <span>Build and measure asynchronous/synchronous counter circuits and 555-based timer/oscillator circuits, calculating frequency, duty cycle, and RC time constants.</span>
-      </li>
-      <li>
-        <span class="clo-num">11</span>
-        <span>Demonstrate safe lab practices, accurate circuit construction on breadboards, and correct use of multimeters, oscilloscopes, and function generators to troubleshoot electronic circuits.</span>
-      </li>
-    </ul>
-  </div>
-
-  <!-- ── EXAM RESOURCES ─────────────────────────────────────── -->
-  <div class="section-header">
-    <span class="sec-icon">🎓</span>
-    <h2>Practice Exam Builder</h2>
-  </div>
-  <p class="section-sub">Use this tool to build practice examine for any or all of the lessons in this course.</p>
+  <p class="section-sub">Interactive learning activities that reinforce each lesson topic through simulation, guided exploration, and practice before students move to the hands-on labs.</p>
 
   <div class="resource-grid">
 
-    <a href="practice-exam.html" class="resource-card">
-      <div class="rc-type">Exam Builder</div>
-      <div class="rc-icon-title">
-        <span class="rc-icon">🧪</span>
-        <div class="rc-title">Practice Exam</div>
+    <a href="activity01.html" class="resource-card activity-card acc-semi">
+      <div class="card-top">
+        <span class="rc-type">Activity 1</span>
+        <span class="topic-tag tag-semi">Semiconductors</span>
       </div>
-      <div class="rc-desc">Build questions based on any and all lessons, upto 25 questions, ability to select types of questions and difficulty.</div>
-      <div class="rc-covers"><strong>Covers:</strong> Lessons 1–8 · Timed · Scored · Answer Review</div>
-      <div class="rc-arrow">→</div>
+      <div class="rc-icon-title">
+        <span class="rc-icon">💡</span>
+        <div class="rc-title">Diode and LED Operations</div>
+      </div>
+      <div class="rc-desc">Explore P-N junction behavior under forward and reverse bias, trace diode characteristic curves, and examine how LEDs emit light and require current limiting.</div>
+      <div class="rc-covers"><strong>Focus:</strong> Forward/Reverse Bias · I-V Curve · Threshold Voltage · LED Current Limiting</div>
+      <div class="rc-arrow">Start Activity →</div>
     </a>
 
-    <a href="final-review.html" class="resource-card">
-      <div class="rc-type">Cumulative Review</div>
-      <div class="rc-icon-title">
-        <span class="rc-icon">🏆</span>
-        <div class="rc-title">Final Exam Review</div>
+    <a href="activity02.html" class="resource-card activity-card acc-semi">
+      <div class="card-top">
+        <span class="rc-type">Activity 2</span>
+        <span class="topic-tag tag-semi">Semiconductors</span>
       </div>
-      <div class="rc-desc">Comprehensive review spanning all eight lessons. Includes formula reference, key concept summaries, circuit identification exercises, and a full cumulative practice assessment.</div>
-      <div class="rc-covers"><strong>Covers:</strong> All Lessons · Formula Sheet · Circuit ID · Cumulative Quiz</div>
-      <div class="rc-arrow">→</div>
+      <div class="rc-icon-title">
+        <span class="rc-icon">🔌</span>
+        <div class="rc-title">Rectifiers</div>
+      </div>
+      <div class="rc-desc">Compare half-wave, full-wave center-tapped, and bridge rectifiers, then add capacitive filtering to see how ripple voltage changes with load and capacitance.</div>
+      <div class="rc-covers"><strong>Focus:</strong> Half-Wave · Full-Wave · Bridge · Filter Capacitor · Ripple Voltage</div>
+      <div class="rc-arrow">Start Activity →</div>
+    </a>
+
+    <a href="activity03.html" class="resource-card activity-card acc-active">
+      <div class="card-top">
+        <span class="rc-type">Activity 3</span>
+        <span class="topic-tag tag-active">Active Devices</span>
+      </div>
+      <div class="rc-icon-title">
+        <span class="rc-icon">🔋</span>
+        <div class="rc-title">Transistor Operations</div>
+      </div>
+      <div class="rc-desc">Investigate BJT and MOSFET operating regions, locate the Q-point on a DC load line, and observe transistors acting as switches between cutoff and saturation.</div>
+      <div class="rc-covers"><strong>Focus:</strong> BJT · MOSFET · Cutoff/Active/Saturation · Q-Point · Switching</div>
+      <div class="rc-arrow">Start Activity →</div>
+    </a>
+
+    <a href="activity04.html" class="resource-card activity-card acc-active">
+      <div class="card-top">
+        <span class="rc-type">Activity 4</span>
+        <span class="topic-tag tag-active">Active Devices</span>
+      </div>
+      <div class="rc-icon-title">
+        <span class="rc-icon">📡</span>
+        <div class="rc-title">Operational Amplifiers</div>
+      </div>
+      <div class="rc-desc">Configure inverting and non-inverting op-amp circuits, adjust feedback resistors, and verify calculated gain against simulated output waveforms.</div>
+      <div class="rc-covers"><strong>Focus:</strong> Inverting · Non-Inverting · Virtual Ground · Feedback · Voltage Gain</div>
+      <div class="rc-arrow">Start Activity →</div>
+    </a>
+
+    <a href="activity05.html" class="resource-card activity-card acc-logic">
+      <div class="card-top">
+        <span class="rc-type">Activity 5</span>
+        <span class="topic-tag tag-logic">Logic Fundamentals</span>
+      </div>
+      <div class="rc-icon-title">
+        <span class="rc-icon">🔢</span>
+        <div class="rc-title">Logic Gates</div>
+      </div>
+      <div class="rc-desc">Toggle inputs on AND, OR, NOT, NAND, NOR, XOR, and XNOR gates, build truth tables, and connect gates to verify Boolean expressions and identities.</div>
+      <div class="rc-covers"><strong>Focus:</strong> Gate Types · Truth Tables · Boolean Expressions · Gate Combinations</div>
+      <div class="rc-arrow">Start Activity →</div>
+    </a>
+
+    <a href="activity06.html" class="resource-card activity-card acc-logic">
+      <div class="card-top">
+        <span class="rc-type">Activity 6</span>
+        <span class="topic-tag tag-logic">Logic Fundamentals</span>
+      </div>
+      <div class="rc-icon-title">
+        <span class="rc-icon">🔄</span>
+        <div class="rc-title">Latches and Flip-Flops</div>
+      </div>
+      <div class="rc-desc">Step through SR, D, and JK latch and flip-flop behavior, comparing level-triggered and edge-triggered operation using interactive timing diagrams.</div>
+      <div class="rc-covers"><strong>Focus:</strong> SR Latch · D Flip-Flop · JK Flip-Flop · Clock Edges · Timing Diagrams</div>
+      <div class="rc-arrow">Start Activity →</div>
+    </a>
+
+    <a href="activity07.html" class="resource-card activity-card acc-digital">
+      <div class="card-top">
+        <span class="rc-type">Activity 7</span>
+        <span class="topic-tag tag-digital">Digital Systems</span>
+      </div>
+      <div class="rc-icon-title">
+        <span class="rc-icon">🔁</span>
+        <div class="rc-title">Counters, Encoders and Decoders</div>
+      </div>
+      <div class="rc-desc">Clock ripple and synchronous counters, then translate between switch inputs, binary codes, and 7-segment outputs using encoder and decoder circuits.</div>
+      <div class="rc-covers"><strong>Focus:</strong> Ripple Counter · Synchronous Counter · Priority Encoder · BCD Decoder · 7-Segment</div>
+      <div class="rc-arrow">Start Activity →</div>
+    </a>
+
+    <a href="activity08.html" class="resource-card activity-card acc-digital">
+      <div class="card-top">
+        <span class="rc-type">Activity 8</span>
+        <span class="topic-tag tag-digital">Digital Systems</span>
+      </div>
+      <div class="rc-icon-title">
+        <span class="rc-icon">📈</span>
+        <div class="rc-title">A-to-D and D-to-A Convertors</div>
+      </div>
+      <div class="rc-desc">Sample an analog signal and convert it to digital values, then reconstruct it with a DAC to see how bit resolution and sampling rate affect accuracy.</div>
+      <div class="rc-covers"><strong>Focus:</strong> ADC · DAC · Resolution · Sampling Rate · Quantization</div>
+      <div class="rc-arrow">Start Activity →</div>
     </a>
 
   </div>
 
-  <!-- ── LAB ACTIVITIES ─────────────────────────────────────── -->
+  <!-- ── 4. LABS ────────────────────────────────────────────── -->
   <div class="section-header">
     <span class="sec-icon">🔬</span>
-    <h2>Lab Activities</h2>
+    <h2>Labs</h2>
   </div>
   <p class="section-sub">Eight hands-on lab exercises covering circuit construction, measurement, and analysis. Each lab is linked to its corresponding lesson and requires use of the Electronics Lab Kit.</p>
 
@@ -847,10 +944,43 @@
       <div class="rc-covers"><strong>Skills:</strong> BCD Decoder · 7-Segment Display · Priority Encoder · IC Wiring</div>
       <div class="rc-arrow">→</div>
     </a>
-    
+
   </div>
 
-  <!-- ── CONTENT DEVELOPMENT TOOLS ─────────────────────────── -->
+  <!-- ── 5. EXAM RESOURCES ──────────────────────────────────── -->
+  <div class="section-header">
+    <span class="sec-icon">🎓</span>
+    <h2>Practice Exam Builder</h2>
+  </div>
+  <p class="section-sub">Use this tool to build practice examine for any or all of the lessons in this course.</p>
+
+  <div class="resource-grid">
+
+    <a href="practice-exam.html" class="resource-card">
+      <div class="rc-type">Exam Builder</div>
+      <div class="rc-icon-title">
+        <span class="rc-icon">🧪</span>
+        <div class="rc-title">Practice Exam</div>
+      </div>
+      <div class="rc-desc">Build questions based on any and all lessons, upto 25 questions, ability to select types of questions and difficulty.</div>
+      <div class="rc-covers"><strong>Covers:</strong> Lessons 1–8 · Timed · Scored · Answer Review</div>
+      <div class="rc-arrow">→</div>
+    </a>
+
+    <a href="final-review.html" class="resource-card">
+      <div class="rc-type">Cumulative Review</div>
+      <div class="rc-icon-title">
+        <span class="rc-icon">🏆</span>
+        <div class="rc-title">Final Exam Review</div>
+      </div>
+      <div class="rc-desc">Comprehensive review spanning all eight lessons. Includes formula reference, key concept summaries, circuit identification exercises, and a full cumulative practice assessment.</div>
+      <div class="rc-covers"><strong>Covers:</strong> All Lessons · Formula Sheet · Circuit ID · Cumulative Quiz</div>
+      <div class="rc-arrow">→</div>
+    </a>
+
+  </div>
+
+  <!-- ── 6. CONTENT DEVELOPMENT TOOLS ──────────────────────── -->
   <div class="section-header">
     <span class="sec-icon">🛠️</span>
     <h2>Content Development Tools</h2>
