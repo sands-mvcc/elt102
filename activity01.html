@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ELT 102 Activity 1: Diode I-V Curves &amp; Optical Isolation</title>
+<style>
+:root{
+  --navy:#0047AB; --navy-dark:#003580; --navy-darker:#002a66;
+  --green:#00a86b; --green-dark:#00875a;
+  --amber:#e8a020; --red:#c0392b;
+  --bg:#f5f7fa; --card:#ffffff; --card-alt:#eef2f8;
+  --text:#1c2733; --text-muted:#5a6b7d;
+  --border:#d7dfe9; --shadow:0 2px 10px rgba(0,40,90,.10);
+  --code-bg:#eef2f8; --strong:#0047AB;
+}
+[data-theme="dark"]{
+  --navy:#4d8cff; --navy-dark:#3a6fd0; --navy-darker:#0d1b2e;
+  --green:#2ecc8f; --green-dark:#22b07a;
+  --amber:#f0b545; --red:#e06050;
+  --bg:#0f1620; --card:#18222f; --card-alt:#1f2c3c;
+  --text:#e8eef5; --text-muted:#9fb0c2;
+  --border:#2c3a4c; --shadow:0 2px 12px rgba(0,0,0,.45);
+  --code-bg:#111a26; --strong:#8ab6ff;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:Georgia,'Times New Roman',serif;background:var(--bg);color:var(--text);line-height:1.65;transition:background .3s,color .3s;}
+a{color:var(--navy);}
+:focus-visible{outline:3px solid var(--amber);outline-offset:2px;}
+strong{color:var(--strong);}
+
+/* ============ TOP BAR ============ */
+.topbar{background:linear-gradient(135deg,#0047AB,#002a66);color:#fff;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.25);}
+[data-theme="dark"] .topbar{background:linear-gradient(135deg,#0d1b2e,#001a40);}
+.topbar .brand{font-family:'Arial Narrow',Arial,sans-serif;font-weight:bold;font-size:1.05rem;letter-spacing:.04em;}
+.topbar .right{display:flex;gap:10px;align-items:center;}
+.badge{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);border-radius:20px;padding:3px 14px;font-family:'Arial Narrow',Arial,sans-serif;font-size:.85rem;}
+.theme-btn{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:20px;padding:5px 16px;cursor:pointer;font-family:'Arial Narrow',Arial,sans-serif;font-size:.85rem;}
+.theme-btn:hover{background:rgba(255,255,255,.3);}
+.crumbs{background:var(--card);border-bottom:1px solid var(--border);padding:8px 24px;font-family:'Arial Narrow',Arial,sans-serif;font-size:.85rem;color:var(--text-muted);}
+.crumbs a{text-decoration:none;}
+.crumbs a:hover{text-decoration:underline;}
+
+/* ============ HERO ============ */
+.hero{background:linear-gradient(135deg,#0047AB 0%,#003580 55%,#00875a 130%);color:#fff;padding:46px 24px 40px;}
+[data-theme="dark"] .hero{background:linear-gradient(135deg,#123a75 0%,#0d1b2e 55%,#0e4a36 130%);}
+.hero-inner{max-width:1080px;margin:0 auto;}
+.hero .kicker{display:inline-block;background:var(--green);color:#fff;border-radius:20px;padding:4px 16px;font-family:'Arial Narrow',Arial,sans-serif;font-size:.88rem;margin-bottom:14px;}
+.hero h1{font-size:2.3rem;line-height:1.2;margin-bottom:12px;max-width:820px;}
+.hero p{max-width:720px;font-size:1.08rem;opacity:.93;}
+.hero .how{margin-top:20px;display:flex;flex-wrap:wrap;gap:10px;font-family:'Arial Narrow',Arial,sans-serif;font-size:.92rem;}
+.hero .how span{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:6px 14px;}
+
+/* ============ ACTIVITY SWITCHER ============ */
+.switcher-wrap{position:sticky;top:52px;z-index:90;background:var(--bg);border-bottom:1px solid var(--border);padding:12px 22px;}
+.switcher{max-width:1080px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.sw-btn{display:flex;gap:14px;align-items:center;text-align:left;background:var(--card);color:var(--text);border:2px solid var(--border);border-radius:12px;padding:12px 16px;cursor:pointer;font-family:inherit;transition:border-color .2s,background .2s;}
+.sw-btn:hover{border-color:var(--navy);}
+.sw-btn .ico{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:1.3rem;background:var(--card-alt);}
+.sw-btn .t{font-weight:bold;font-size:1.02rem;color:var(--navy);display:block;line-height:1.25;}
+.sw-btn .s{font-family:'Arial Narrow',Arial,sans-serif;font-size:.84rem;color:var(--text-muted);display:block;}
+.sw-btn .prog{margin-left:auto;flex:none;font-family:'Arial Narrow',Arial,sans-serif;font-size:.8rem;color:var(--text-muted);text-align:right;}
+.sw-btn[aria-selected="true"]{border-color:var(--navy);background:linear-gradient(135deg,var(--navy),var(--navy-darker));color:#fff;}
+.sw-btn[aria-selected="true"] .t,.sw-btn[aria-selected="true"] .s,.sw-btn[aria-selected="true"] .prog{color:#fff;}
+.sw-btn[aria-selected="true"] .ico{background:rgba(255,255,255,.18);}
+@media(max-width:700px){.switcher{grid-template-columns:1fr;} .sw-btn .s{display:none;} .switcher-wrap{position:static;}}
+
+/* ============ LAYOUT ============ */
+.wrap{max-width:1080px;margin:0 auto;padding:30px 22px 50px;}
+.panel[hidden]{display:none;}
+.panel-head{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;border-bottom:3px solid var(--green);padding-bottom:10px;margin-bottom:18px;}
+.panel-head h2{font-size:1.7rem;color:var(--navy);line-height:1.2;}
+.panel-head .from{font-family:'Arial Narrow',Arial,sans-serif;font-size:.9rem;color:var(--text-muted);}
+.lead{max-width:780px;margin-bottom:18px;}
+
+/* ============ SIM FRAME ============ */
+.sim{background:var(--card);border:2px solid var(--navy);border-radius:12px;box-shadow:var(--shadow);padding:22px;}
+.sim-grid{display:grid;grid-template-columns:1fr 300px;gap:22px;align-items:start;}
+@media(max-width:860px){.sim-grid{grid-template-columns:1fr;}}
+canvas{width:100%;height:auto;border:1px solid var(--border);border-radius:8px;display:block;}
+.ctrl{margin-bottom:15px;}
+.ctrl label,.ctrl .lbl{display:flex;justify-content:space-between;font-family:'Arial Narrow',Arial,sans-serif;font-size:.9rem;font-weight:bold;color:var(--navy);margin-bottom:4px;}
+.ctrl .val{color:var(--green-dark);}
+.ctrl input[type=range]{width:100%;accent-color:var(--green);}
+.ctrl select{width:100%;padding:7px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--text);font-family:'Arial Narrow',Arial,sans-serif;font-size:.92rem;}
+.seg{display:flex;gap:6px;}
+.seg button{flex:1;font-family:'Arial Narrow',Arial,sans-serif;background:var(--card-alt);color:var(--text-muted);border:1px solid var(--border);border-radius:8px;padding:8px 4px;cursor:pointer;font-size:.86rem;}
+.seg button:hover{color:var(--navy);border-color:var(--navy);}
+.seg button.active{background:var(--navy);color:#fff;border-color:var(--navy);font-weight:bold;}
+.toggle-row{display:flex;align-items:center;gap:10px;font-family:'Arial Narrow',Arial,sans-serif;font-size:.92rem;font-weight:bold;color:var(--navy);margin-bottom:15px;cursor:pointer;}
+.toggle-row input{accent-color:var(--green);width:18px;height:18px;}
+.readout{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-family:'Courier New',monospace;font-size:.85rem;line-height:1.75;}
+.r-on{color:var(--green-dark);font-weight:bold;}
+.r-off{color:var(--red);font-weight:bold;}
+.r-bd{color:#a86e00;font-weight:bold;}
+[data-theme="dark"] .r-bd{color:var(--amber);}
+.g-btns{display:flex;gap:8px;margin-top:10px;}
+.g-btn{flex:1;background:var(--navy);color:#fff;border:none;border-radius:6px;padding:9px 6px;cursor:pointer;font-family:'Arial Narrow',Arial,sans-serif;font-size:.86rem;}
+.g-btn:hover{background:var(--navy-dark);}
+.g-btn.g-green{background:var(--green);}
+.g-btn.g-green:hover{background:var(--green-dark);}
+.formula{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-family:'Courier New',monospace;font-size:.95rem;margin:16px 0 0;overflow-x:auto;}
+
+/* ============ EXPLORATION CHECKLIST ============ */
+.explore{margin-top:22px;display:grid;grid-template-columns:1fr 280px;gap:22px;align-items:start;}
+@media(max-width:860px){.explore{grid-template-columns:1fr;}}
+.explore h3{color:var(--navy);font-size:1.25rem;margin-bottom:4px;}
+.explore .hint{color:var(--text-muted);font-size:.93rem;margin-bottom:12px;}
+.steps{list-style:none;counter-reset:st;}
+.steps li{counter-increment:st;display:grid;grid-template-columns:34px 1fr auto;gap:12px;align-items:start;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;transition:border-color .2s,background .2s;}
+.steps li::before{content:counter(st);width:30px;height:30px;border-radius:50%;background:var(--card-alt);color:var(--navy);font-weight:bold;display:grid;place-items:center;font-family:'Arial Narrow',Arial,sans-serif;}
+.steps li.done{border-color:var(--green);background:rgba(0,168,107,.07);}
+.steps li.done::before{content:"✓";background:var(--green);color:#fff;}
+.steps .st-t{font-weight:bold;color:var(--navy);display:block;margin-bottom:2px;}
+.steps .st-d{font-size:.93rem;}
+.steps .st-a{display:flex;flex-direction:column;gap:6px;}
+.mini{font-family:'Arial Narrow',Arial,sans-serif;font-size:.8rem;border:1px solid var(--navy);color:var(--navy);background:transparent;border-radius:16px;padding:4px 12px;cursor:pointer;white-space:nowrap;}
+.mini:hover{background:var(--navy);color:#fff;}
+.mini.ok{border-color:var(--green-dark);color:var(--green-dark);}
+li.done .mini.ok{background:var(--green);border-color:var(--green);color:#fff;}
+.side-card{background:var(--card);border-left:6px solid var(--green);border-radius:0 10px 10px 0;box-shadow:var(--shadow);padding:18px 20px;}
+.side-card h4{color:var(--green-dark);margin-bottom:8px;font-size:1.02rem;}
+.side-card p,.side-card li{font-size:.92rem;}
+.side-card ul{margin-left:18px;}
+.side-card li{margin-bottom:6px;}
+.bar{height:10px;border-radius:6px;background:var(--card-alt);overflow:hidden;margin:6px 0 4px;}
+.bar span{display:block;height:100%;width:0;background:var(--green);transition:width .35s;}
+.bar-lbl{font-family:'Arial Narrow',Arial,sans-serif;font-size:.85rem;color:var(--text-muted);}
+
+/* ============ CALLOUT / NAV / FOOTER ============ */
+.callout{border-radius:10px;padding:14px 18px;margin:18px 0 0;border-left:6px solid var(--navy);background:rgba(0,71,171,.08);}
+.callout .co-title{font-family:'Arial Narrow',Arial,sans-serif;font-weight:bold;font-size:.95rem;color:var(--navy);margin-bottom:4px;}
+.next-row{display:flex;justify-content:flex-end;margin-top:24px;}
+.next-row button{background:var(--green);color:#fff;border:none;border-radius:26px;padding:11px 26px;font-family:Georgia,serif;font-size:1rem;cursor:pointer;box-shadow:var(--shadow);}
+.next-row button:hover{background:var(--green-dark);}
+.foot-nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:44px;}
+.foot-nav a{background:var(--navy);color:#fff;text-decoration:none;border-radius:26px;padding:11px 24px;font-family:'Arial Narrow',Arial,sans-serif;box-shadow:var(--shadow);}
+.foot-nav a:hover{background:var(--navy-dark);}
+.foot-nav a.home{background:var(--green);}
+.foot-nav a.home:hover{background:var(--green-dark);}
+footer{background:var(--navy-darker);color:rgba(255,255,255,.75);text-align:center;padding:24px 20px;font-family:'Arial Narrow',Arial,sans-serif;font-size:.83rem;line-height:1.7;}
+[data-theme="dark"] footer{background:#0a1420;}
+@media(max-width:640px){.hero h1{font-size:1.75rem;} .sim{padding:14px;}}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;scroll-behavior:auto!important;}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="brand">⚡ ELT 102 · Digital Logic &amp; Solid State Devices</span>
+  <div class="right">
+    <span class="badge">Activity 1</span>
+    <button class="theme-btn" onclick="toggleTheme()" aria-label="Toggle light and dark mode">🌓 Mode</button>
+  </div>
+</div>
+<nav class="crumbs" aria-label="Breadcrumb">
+  <a href="https://sands-mvcc.github.io/elt/index.html">Home</a> &nbsp;›&nbsp;
+  <a href="lesson01.html">Lesson 1</a> &amp; <a href="lesson02.html">Lesson 2</a> &nbsp;›&nbsp;
+  Activity 1: Diode Curves &amp; Optical Isolation
+</nav>
+
+<header class="hero">
+  <div class="hero-inner">
+    <span class="kicker">Unit 1 · Hands-on simulator activity</span>
+    <h1>Activity 1: Diode I-V Curves &amp; Optical Isolation</h1>
+    <p>Two simulators, one idea: a P-N junction controls current one way and turns current into light. Start by mapping a diode's full characteristic curve, then send a signal across an optocoupler's isolation barrier and try to break it.</p>
+    <div class="how">
+      <span>⏱ About 45 minutes</span>
+      <span>🧪 Part A: I-V curve grapher</span>
+      <span>💡 Part B: optocoupler simulator</span>
+      <span>✅ Check off each exploration as you finish it</span>
+    </div>
+  </div>
+</header>
+
+<div class="switcher-wrap">
+  <div class="switcher" role="tablist" aria-label="Choose a simulator">
+    <button class="sw-btn" role="tab" id="tab-grapher" aria-controls="grapher" aria-selected="true" onclick="openPanel('grapher')">
+      <span class="ico">📈</span>
+      <span><span class="t">Part A · Diode I-V Curve Grapher</span><span class="s">From Lesson 1 · Shockley equation, temperature, breakdown</span></span>
+      <span class="prog" id="progA">0 / 4</span>
+    </button>
+    <button class="sw-btn" role="tab" id="tab-optocoupler" aria-controls="optocoupler" aria-selected="false" tabindex="-1" onclick="openPanel('optocoupler')">
+      <span class="ico">💡</span>
+      <span><span class="t">Part B · Optocoupler Isolation</span><span class="s">From Lesson 2 · LED drive, CTR, common-mode noise</span></span>
+      <span class="prog" id="progB">0 / 4</span>
+    </button>
+  </div>
+</div>
+
+<main class="wrap">
+
+<!-- ======================= PART A ======================= -->
+<section class="panel" id="grapher" role="tabpanel" aria-labelledby="tab-grapher">
+  <div class="panel-head">
+    <h2>📈 Part A: Interactive Diode I-V Curve Grapher</h2>
+    <span class="from">Source: Lesson 1, Semiconductor Fundamentals &amp; Diodes</span>
+  </div>
+  <p class="lead">The curve is plotted live from the <strong>Shockley diode equation</strong> plus a modeled breakdown region. Drag <strong>Applied Voltage</strong> to move the green operating point and watch the diode switch between OFF, ON, and BREAKDOWN. Then raise the temperature and watch the knee slide left while leakage grows.</p>
+
+  <div class="sim">
+    <div class="sim-grid">
+      <div>
+        <canvas id="ivCanvas" width="720" height="480" role="img" aria-label="Diode current versus voltage characteristic curve with adjustable parameters"></canvas>
+        <div class="formula">I<sub>D</sub> = I<sub>S</sub> ( e<sup>V<sub>D</sub> / (n·V<sub>T</sub>)</sup> − 1 ) &nbsp;&nbsp; V<sub>T</sub> = kT/q ≈ 26 mV at 25 °C</div>
+      </div>
+      <div>
+        <div class="ctrl">
+          <label for="dType">Diode type</label>
+          <select id="dType" onchange="presetType()">
+            <option value="si" selected>Silicon rectifier (1N4001-style)</option>
+            <option value="ge">Germanium (1N34A-style)</option>
+            <option value="led">Red LED</option>
+            <option value="zener">5.1 V Zener (1N4733A-style)</option>
+          </select>
+        </div>
+        <div class="ctrl">
+          <label for="vd">Applied voltage V<sub>D</sub> <span class="val" id="vdVal">0.00 V</span></label>
+          <input type="range" id="vd" min="-8" max="1.2" step="0.01" value="0" oninput="drawIV()">
+        </div>
+        <div class="ctrl">
+          <label for="temp">Temperature <span class="val" id="tVal">25 °C</span></label>
+          <input type="range" id="temp" min="-25" max="125" step="1" value="25" oninput="drawIV()">
+        </div>
+        <div class="ctrl">
+          <label for="nf">Ideality factor n <span class="val" id="nVal">1.50</span></label>
+          <input type="range" id="nf" min="1" max="2" step="0.05" value="1.5" oninput="drawIV()">
+        </div>
+        <div class="ctrl">
+          <label for="isat">Saturation current I<sub>S</sub> <span class="val" id="isVal">10 nA</span></label>
+          <input type="range" id="isat" min="-10" max="-6" step="0.1" value="-8" oninput="drawIV()">
+        </div>
+        <div class="ctrl">
+          <label for="bv">Breakdown voltage <span class="val" id="bvVal">−6.0 V</span></label>
+          <input type="range" id="bv" min="2" max="8" step="0.1" value="6" oninput="drawIV()">
+        </div>
+        <div class="readout" id="ivRead" aria-live="polite"></div>
+        <div class="g-btns">
+          <button class="g-btn g-green" id="sweepBtn" onclick="animSweep()">▶ Sweep curve</button>
+          <button class="g-btn" onclick="resetGrapher()">↺ Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="explore">
+    <div>
+      <h3>Guided explorations</h3>
+      <p class="hint">Use “Set it up” to load the starting conditions, then mark each one done.</p>
+      <ol class="steps" data-group="A">
+        <li data-id="A1">
+          <div><span class="st-t">Find the knee</span><span class="st-d">With Silicon selected, sweep V<sub>D</sub> upward and note where current first reaches 1 mA. Compare it with the “Knee @ 1 mA” value in the readout.</span></div>
+          <div class="st-a"><button class="mini" onclick="setupIV('knee')">Set it up</button><button class="mini ok" onclick="markDone(this)">Mark done</button></div>
+        </li>
+        <li data-id="A2">
+          <div><span class="st-t">Temperature drift</span><span class="st-d">Park V<sub>D</sub> at 0.65 V, then slide temperature from 25 °C to 100 °C. Current climbs sharply even though voltage never changed: the origin of thermal runaway.</span></div>
+          <div class="st-a"><button class="mini" onclick="setupIV('temp')">Set it up</button><button class="mini ok" onclick="markDone(this)">Mark done</button></div>
+        </li>
+        <li data-id="A3">
+          <div><span class="st-t">Compare materials</span><span class="st-d">Switch between Silicon and Germanium and record how far left the knee moves.</span></div>
+          <div class="st-a"><button class="mini" onclick="setupIV('ge')">Set it up</button><button class="mini ok" onclick="markDone(this)">Mark done</button></div>
+        </li>
+        <li data-id="A4">
+          <div><span class="st-t">Zener wall</span><span class="st-d">Select the Zener preset and sweep V<sub>D</sub> toward −6 V. Watch the operating point hit the near-vertical regulation region around −5 V.</span></div>
+          <div class="st-a"><button class="mini" onclick="setupIV('zener')">Set it up</button><button class="mini ok" onclick="markDone(this)">Mark done</button></div>
+        </li>
+      </ol>
+    </div>
+    <aside class="side-card">
+      <h4>Part A progress</h4>
+      <div class="bar"><span id="barA"></span></div>
+      <div class="bar-lbl" id="barALbl">0 of 4 explorations done</div>
+      <h4 style="margin-top:16px;">Reading the curve</h4>
+      <ul>
+        <li><strong>Forward:</strong> near-zero current, then an exponential rise past the knee.</li>
+        <li><strong>Reverse:</strong> a flat line of leakage that roughly doubles every 10 °C.</li>
+        <li><strong>Breakdown:</strong> a near-vertical plunge at the breakdown voltage.</li>
+        <li>V<sub>F</sub> falls about <strong>2 mV per °C</strong>.</li>
+      </ul>
+    </aside>
+  </div>
+  <div class="next-row"><button onclick="openPanel('optocoupler', true)">Continue to Part B: Optocoupler ›</button></div>
+</section>
+
+<!-- ======================= PART B ======================= -->
+<section class="panel" id="optocoupler" role="tabpanel" aria-labelledby="tab-optocoupler" hidden>
+  <div class="panel-head">
+    <h2>💡 Part B: Interactive Optocoupler Isolation Simulator</h2>
+    <span class="from">Source: Lesson 2, Diode Applications &amp; Optoelectronics</span>
+  </div>
+  <p class="lead">Your input signal drives the infrared LED (watch it glow with current), light crosses the isolation barrier, and the phototransistor rebuilds the signal on a completely separate circuit. Inject <strong>common-mode noise</strong> onto the input-side ground: it shakes the input trace, yet the isolated output stays clean.</p>
+
+  <div class="sim">
+    <div class="sim-grid">
+      <div>
+        <canvas id="ocCv" width="720" height="430" role="img" aria-label="Optocoupler simulation showing input signal, LED, isolation barrier, phototransistor, and isolated output waveform"></canvas>
+        <div class="formula">CTR = (I<sub>C</sub> / I<sub>F</sub>) × 100% &nbsp;&nbsp;→&nbsp;&nbsp; I<sub>C(out)</sub> = I<sub>F(LED)</sub> × CTR</div>
+      </div>
+      <div>
+        <div class="ctrl">
+          <span class="lbl">Input signal</span>
+          <div class="seg" id="sigSeg">
+            <button class="active" onclick="setSig('square',this)">Square</button>
+            <button onclick="setSig('data',this)">Data</button>
+            <button onclick="setSig('sine',this)">Sine</button>
+          </div>
+        </div>
+        <div class="ctrl">
+          <label for="ifled">LED drive current <span class="val" id="ifVal">10.0 mA</span></label>
+          <input type="range" id="ifled" min="1" max="20" step="0.5" value="10">
+        </div>
+        <div class="ctrl">
+          <label for="ctr">Current transfer ratio <span class="val" id="ctrVal">100%</span></label>
+          <input type="range" id="ctr" min="20" max="200" step="5" value="100">
+        </div>
+        <label class="toggle-row"><input type="checkbox" id="noiseChk">Inject common-mode noise (input-side ground)</label>
+        <div class="readout" id="ocRead" aria-live="polite"></div>
+        <div class="g-btns">
+          <button class="g-btn" id="pauseBtn" onclick="togglePause()">⏸ Pause</button>
+          <button class="g-btn" onclick="resetOC()">↺ Reset</button>
+        </div>
+      </div>
+    </div>
+    <div class="callout">
+      <div class="co-title">🎯 What to notice</div>
+      Output current is I<sub>F</sub> × CTR, pulled up through a 1 kΩ load. When that product drops below about 4.5 mA, the output can no longer reach a clean logic HIGH and the readout flags <strong>WEAK COUPLING</strong>, the same failure you see in an aged optocoupler.
+    </div>
+  </div>
+
+  <div class="explore">
+    <div>
+      <h3>Guided explorations</h3>
+      <p class="hint">Use “Set it up” to load the starting conditions, then mark each one done.</p>
+      <ol class="steps" data-group="B">
+        <li data-id="B1">
+          <div><span class="st-t">Light tracks current</span><span class="st-d">Drag LED drive from 2 mA to 20 mA and watch the LED glow and the output amplitude grow together. Calculate I<sub>C</sub> by hand at 8 mA and check the readout.</span></div>
+          <div class="st-a"><button class="mini" onclick="setupOC('glow')">Set it up</button><button class="mini ok" onclick="markDone(this)">Mark done</button></div>
+        </li>
+        <li data-id="B2">
+          <div><span class="st-t">Test the barrier</span><span class="st-d">Turn on common-mode noise. Describe what happens to the input lane versus the isolated output lane, and explain why light can't carry the noise.</span></div>
+          <div class="st-a"><button class="mini" onclick="setupOC('noise')">Set it up</button><button class="mini ok" onclick="markDone(this)">Mark done</button></div>
+        </li>
+        <li data-id="B3">
+          <div><span class="st-t">Age the part</span><span class="st-d">Hold I<sub>F</sub> at 10 mA and lower CTR until the output turns red. Record the CTR where coupling fails, then find the minimum I<sub>F</sub> that recovers it.</span></div>
+          <div class="st-a"><button class="mini" onclick="setupOC('age')">Set it up</button><button class="mini ok" onclick="markDone(this)">Mark done</button></div>
+        </li>
+        <li data-id="B4">
+          <div><span class="st-t">Send real data</span><span class="st-d">Switch to Data pulses and pause the display. Read the bit pattern from the output lane and confirm it matches the input lane.</span></div>
+          <div class="st-a"><button class="mini" onclick="setupOC('data')">Set it up</button><button class="mini ok" onclick="markDone(this)">Mark done</button></div>
+        </li>
+      </ol>
+    </div>
+    <aside class="side-card">
+      <h4>Part B progress</h4>
+      <div class="bar"><span id="barB"></span></div>
+      <div class="bar-lbl" id="barBLbl">0 of 4 explorations done</div>
+      <h4 style="margin-top:16px;">Design rules</h4>
+      <ul>
+        <li>Input resistor: R<sub>IN</sub> = (V<sub>LOGIC</sub> − V<sub>F</sub>) / I<sub>F</sub>.</li>
+        <li>Design with the <strong>minimum</strong> datasheet CTR; it drops as the LED ages.</li>
+        <li>Keep input and output grounds <strong>separate</strong>, or the isolation is gone.</li>
+        <li>Typical isolation: 2.5–5 kV.</li>
+      </ul>
+    </aside>
+  </div>
+  <div class="next-row"><button onclick="openPanel('grapher', true)">‹ Back to Part A: I-V Grapher</button></div>
+</section>
+
+<div class="foot-nav">
+  <a href="lesson01.html">← Lesson 1: Semiconductor Fundamentals</a>
+  <a class="home" href="https://sands-mvcc.github.io/elt/index.html">🏠 ELT 102 Home</a>
+  <a href="lesson02.html">Lesson 2: Diode Applications →</a>
+</div>
+</main>
+
+<footer>
+  ELT 102 · Digital Logic &amp; Solid State Devices · Activity 1: Diode I-V Curves &amp; Optical Isolation<br>
+  Designed and Built by Lead Electronics Instructor &amp; Professor · Moraine Valley Community College<br>
+  © 2026 ELT 102 Course Materials. All rights reserved. Self-contained Offline Edition.
+</footer>
+
+<script>
+/* ================= STORAGE HELPERS ================= */
+function sGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function sSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+function css(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function $(id){ return document.getElementById(id); }
+
+/* ================= THEME ================= */
+if(sGet('elt-theme')==='dark') document.documentElement.setAttribute('data-theme','dark');
+function toggleTheme(){
+  var d=document.documentElement.getAttribute('data-theme')==='dark';
+  if(d){ document.documentElement.removeAttribute('data-theme'); sSet('elt-theme','light'); }
+  else { document.documentElement.setAttribute('data-theme','dark'); sSet('elt-theme','dark'); }
+  drawIV();
+}
+
+/* ================= PANEL SWITCHER ================= */
+var current='grapher';
+function openPanel(id, scroll){
+  current=id;
+  ['grapher','optocoupler'].forEach(function(p){
+    var on=p===id;
+    $(p).hidden=!on;
+    var t=$('tab-'+p);
+    t.setAttribute('aria-selected', on?'true':'false');
+    t.tabIndex = on?0:-1;
+  });
+  // Updating the URL hash is optional; sandboxed previews (srcdoc iframes) forbid it.
+  try{ if(location.hash!=='#'+id && history.replaceState) history.replaceState(null,'','#'+id); }catch(e){}
+  if(id==='grapher') drawIV(); else startOC();
+  if(id!=='grapher' && ivAnim){ cancelAnimationFrame(ivAnim); ivAnim=null; $('sweepBtn').textContent='▶ Sweep curve'; }
+  if(scroll) document.querySelector('.wrap').scrollIntoView({behavior:'smooth'});
+}
+document.querySelector('.switcher').addEventListener('keydown',function(e){
+  if(e.key==='ArrowRight'||e.key==='ArrowLeft'){
+    var next = current==='grapher'?'optocoupler':'grapher';
+    openPanel(next); $('tab-'+next).focus(); e.preventDefault();
+  }
+});
+
+/* ================= CHECKLIST PROGRESS ================= */
+var DONE={};
+try{ DONE=JSON.parse(sGet('elt-act01-done')||'{}')||{}; }catch(e){ DONE={}; }
+function markDone(btn){
+  var li=btn.closest('li'), id=li.getAttribute('data-id');
+  DONE[id]=!DONE[id];
+  sSet('elt-act01-done',JSON.stringify(DONE));
+  renderProgress();
+}
+function renderProgress(){
+  ['A','B'].forEach(function(g){
+    var items=document.querySelectorAll('.steps[data-group="'+g+'"] li'), n=0;
+    items.forEach(function(li){
+      var d=!!DONE[li.getAttribute('data-id')];
+      li.classList.toggle('done',d);
+      li.querySelector('.mini.ok').textContent = d?'Done ✓':'Mark done';
+      if(d) n++;
+    });
+    $('bar'+g).style.width=(n/items.length*100)+'%';
+    $('bar'+g+'Lbl').textContent=n+' of '+items.length+' explorations done';
+    $('prog'+g).textContent=n+' / '+items.length;
+  });
+}
+
+/* ================================================================
+   PART A — DIODE I-V CURVE GRAPHER
+================================================================ */
+var cv=$('ivCanvas'), cx=cv.getContext('2d'), ivAnim=null;
+var XMIN=-8, XMAX=1.2, YMAX=60, YMIN=-60;
+
+function ivParams(){
+  var T=parseFloat($('temp').value), n=parseFloat($('nf').value);
+  var Is25=Math.pow(10,parseFloat($('isat').value));
+  var Vbr=parseFloat($('bv').value), Vd=parseFloat($('vd').value);
+  var VT=8.617e-5*(T+273.15);
+  var Is=Is25*Math.pow(2,(T-25)/10);
+  return {T:T,n:n,Is:Is,Vbr:Vbr,Vd:Vd,VT:VT};
+}
+function idiode(V,p){
+  var i=p.Is*(Math.exp(V/(p.n*p.VT))-1);
+  if(V < -p.Vbr*0.94){ i -= 0.002*(Math.exp((-V-p.Vbr*0.94)/(0.02*p.Vbr))-1); }
+  return i;
+}
+function sx(v){ var pad=52; return pad+(v-XMIN)/(XMAX-XMIN)*(cv.width-pad-14); }
+function sy(imA){ var mid=cv.height/2; var s=Math.sign(imA)*Math.pow(Math.abs(imA)/YMAX,0.5); return mid-s*(mid-30); }
+
+function drawIV(){
+  if($('grapher').hidden) return;
+  var p=ivParams();
+  $('vdVal').textContent=p.Vd.toFixed(2)+' V';
+  $('tVal').textContent=p.T+' °C';
+  $('nVal').textContent=p.n.toFixed(2);
+  $('isVal').textContent = p.Is>=1e-6 ? (p.Is*1e6).toFixed(1)+' µA' : (p.Is*1e9).toFixed(1)+' nA';
+  $('bvVal').textContent='−'+p.Vbr.toFixed(1)+' V';
+
+  var axis=css('--text-muted'), grid=css('--border'), curveC=css('--navy'), ptC=css('--green'), bg=css('--card'), txt=css('--text');
+  cx.fillStyle=bg; cx.fillRect(0,0,cv.width,cv.height);
+
+  cx.strokeStyle=grid; cx.lineWidth=1; cx.font='11px Arial'; cx.fillStyle=axis;
+  for(var gv=Math.ceil(XMIN); gv<=1; gv++){
+    var x=sx(gv); cx.beginPath(); cx.moveTo(x,20); cx.lineTo(x,cv.height-24); cx.stroke();
+    cx.fillText(gv+' V',x-12,cv.height-8);
+  }
+  [50,20,5,1,-1,-5,-20,-50].forEach(function(im){
+    var y=sy(im); cx.beginPath(); cx.moveTo(46,y); cx.lineTo(cv.width-14,y); cx.stroke();
+    cx.fillText((im>0?'+':'')+im+' mA',4,y+4);
+  });
+  cx.strokeStyle=axis; cx.lineWidth=1.6;
+  cx.beginPath(); cx.moveTo(sx(0),20); cx.lineTo(sx(0),cv.height-24); cx.stroke();
+  cx.beginPath(); cx.moveTo(46,sy(0)); cx.lineTo(cv.width-14,sy(0)); cx.stroke();
+  cx.fillStyle=txt; cx.font='bold 12px Arial';
+  cx.fillText('V (volts) →',cv.width-90,sy(0)-8);
+  cx.fillText('I (mA) ↑',sx(0)+10,34);
+
+  cx.fillStyle=axis; cx.font='italic 11px Georgia';
+  cx.fillText('FORWARD REGION',sx(0.35),40);
+  cx.fillText('REVERSE / LEAKAGE',sx(-6.4),sy(0)-10);
+  cx.fillText('BREAKDOWN',sx(-p.Vbr)-34,cv.height-56);
+
+  cx.setLineDash([4,4]); cx.strokeStyle=ptC; cx.lineWidth=1;
+  cx.beginPath(); cx.moveTo(sx(0.7),20); cx.lineTo(sx(0.7),cv.height-24); cx.stroke();
+  cx.setLineDash([]); cx.fillStyle=ptC; cx.font='11px Arial'; cx.fillText('0.7 V (Si ref)',sx(0.7)-70,30);
+
+  cx.strokeStyle=curveC; cx.lineWidth=2.6; cx.beginPath();
+  var first=true;
+  for(var v=XMIN; v<=XMAX; v+=0.005){
+    var imA=idiode(v,p)*1000;
+    imA=Math.max(YMIN,Math.min(YMAX,imA));
+    if(first){ cx.moveTo(sx(v),sy(imA)); first=false; } else cx.lineTo(sx(v),sy(imA));
+  }
+  cx.stroke();
+
+  var iop=idiode(p.Vd,p)*1000;
+  var iopC=Math.max(YMIN,Math.min(YMAX,iop));
+  cx.fillStyle=ptC; cx.beginPath(); cx.arc(sx(p.Vd),sy(iopC),7,0,Math.PI*2); cx.fill();
+  cx.strokeStyle=bg; cx.lineWidth=2; cx.stroke();
+
+  var state,cls;
+  if(p.Vd<=-p.Vbr*0.94){ state='BREAKDOWN'; cls='r-bd'; }
+  else if(iop>=0.5){ state='ON (conducting)'; cls='r-on'; }
+  else { state='OFF (blocking)'; cls='r-off'; }
+  var iDisp = Math.abs(iop)>=1 ? iop.toFixed(2)+' mA' : Math.abs(iop)>=0.001 ? (iop*1000).toFixed(2)+' µA' : (iop*1e6).toFixed(3)+' nA';
+  var rd = iop>0.5 ? (p.n*p.VT/(iop/1000)).toFixed(1)+' Ω' : '—';
+  var knee = p.n*p.VT*Math.log(1e-3/p.Is+1);
+  $('ivRead').innerHTML=
+    'V<sub>D</sub> = '+p.Vd.toFixed(2)+' V<br>'+
+    'I<sub>D</sub> = '+iDisp+'<br>'+
+    'State: <span class="'+cls+'">'+state+'</span><br>'+
+    'Knee @ 1 mA ≈ '+knee.toFixed(3)+' V<br>'+
+    'V<sub>T</sub> = '+(p.VT*1000).toFixed(1)+' mV<br>'+
+    'r<sub>d</sub> ≈ '+rd;
+}
+function presetType(){
+  var t=$('dType').value, nf=$('nf'), is=$('isat'), bv=$('bv');
+  if(t==='si'){ nf.value=1.5; is.value=-8; bv.value=6; }
+  if(t==='ge'){ nf.value=1.1; is.value=-6.3; bv.value=4; }
+  if(t==='led'){ nf.value=2.0; is.value=-10; bv.value=5; }
+  if(t==='zener'){ nf.value=1.3; is.value=-8; bv.value=5.1; }
+  drawIV();
+}
+function stopSweep(){ if(ivAnim){ cancelAnimationFrame(ivAnim); ivAnim=null; } $('sweepBtn').textContent='▶ Sweep curve'; }
+function resetGrapher(){
+  stopSweep();
+  $('dType').value='si'; $('vd').value=0; $('temp').value=25;
+  presetType();
+}
+function animSweep(){
+  if(ivAnim){ stopSweep(); return; }
+  var vd=$('vd'), v=parseFloat(vd.min);
+  $('sweepBtn').textContent='■ Stop sweep';
+  function step(){
+    v+=0.035;
+    if(v>parseFloat(vd.max)){ stopSweep(); return; }
+    vd.value=v; drawIV(); ivAnim=requestAnimationFrame(step);
+  }
+  ivAnim=requestAnimationFrame(step);
+}
+function setupIV(k){
+  stopSweep();
+  $('temp').value=25;
+  if(k==='knee'){ $('dType').value='si'; $('vd').value=0.4; }
+  if(k==='temp'){ $('dType').value='si'; $('vd').value=0.65; }
+  if(k==='ge'){ $('dType').value='ge'; $('vd').value=0.3; }
+  if(k==='zener'){ $('dType').value='zener'; $('vd').value=-3; }
+  presetType();
+  $('ivCanvas').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+/* ================================================================
+   PART B — OPTOCOUPLER ISOLATION SIMULATOR
+================================================================ */
+var ocCv=$('ocCv'), ocCx=ocCv.getContext('2d');
+var sigMode='square', DATA=[1,0,1,1,0,0,1,0];
+var ocRunning=false, paused=false, simT=0, lastNow=null;
+
+function setSig(m,btn){
+  sigMode=m;
+  document.querySelectorAll('#sigSeg button').forEach(function(b){ b.classList.toggle('active', b===btn); });
+  if(paused) drawOC();
+}
+function sig(t){
+  var ph=((t*1000)%1+1)%1;
+  if(sigMode==='square') return ph<0.5?1:0;
+  if(sigMode==='sine') return 0.5+0.5*Math.sin(2*Math.PI*1000*t);
+  var bit=Math.floor((((t*1000*2)%DATA.length)+DATA.length)%DATA.length);
+  return DATA[bit];
+}
+function drawOC(){
+  var t0=simT;
+  var If=parseFloat($('ifled').value), CTR=parseFloat($('ctr').value), noise=$('noiseChk').checked;
+  $('ifVal').textContent=If.toFixed(1)+' mA';
+  $('ctrVal').textContent=CTR+'%';
+  var Ic=If*CTR/100, voutHi=Math.min(5,Ic*1.0), weak=voutHi<4.5;
+  var W=ocCv.width, H=ocCv.height;
+  ocCx.fillStyle='#0c1420'; ocCx.fillRect(0,0,W,H);
+
+  /* circuit strip */
+  var cy=78;
+  ocCx.fillStyle='rgba(240,181,69,.14)'; ocCx.fillRect(W/2-16,10,32,140);
+  ocCx.strokeStyle='#f0b545'; ocCx.setLineDash([6,4]); ocCx.lineWidth=1.5;
+  ocCx.strokeRect(W/2-16,10,32,140); ocCx.setLineDash([]);
+  ocCx.fillStyle='#f0b545'; ocCx.font='bold 9px Arial'; ocCx.textAlign='center';
+  ocCx.fillText('ISOLATION',W/2,26); ocCx.fillText('5 kV',W/2,38);
+  ocCx.font='bold 10px Arial';
+  ocCx.fillStyle='#7d8fa5'; ocCx.fillText('INPUT CIRCUIT',170,142);
+  ocCx.fillStyle='#2ecc8f'; ocCx.fillText('ISOLATED OUTPUT CIRCUIT',540,142);
+
+  ocCx.strokeStyle='#7d8fa5'; ocCx.lineWidth=2;
+  ocCx.beginPath(); ocCx.moveTo(30,cy); ocCx.lineTo(150,cy); ocCx.stroke();
+  ocCx.fillStyle='#7d8fa5'; ocCx.font='11px Arial';
+  ocCx.fillText('V IN',55,cy-12);
+  ocCx.beginPath(); ocCx.moveTo(150,cy);
+  for(var z=0;z<6;z++){ ocCx.lineTo(150+8+z*12, cy+(z%2?8:-8)); }
+  ocCx.lineTo(230,cy); ocCx.stroke();
+  ocCx.fillText('R IN',185,cy-16);
+
+  var s=sig(t0), glow=s*If/20;
+  var g=ocCx.createRadialGradient(280,cy,2,280,cy,26+glow*26);
+  g.addColorStop(0,'rgba(255,80,60,'+(0.25+glow*0.75)+')'); g.addColorStop(1,'rgba(255,80,60,0)');
+  ocCx.fillStyle=g; ocCx.beginPath(); ocCx.arc(280,cy,26+glow*26,0,Math.PI*2); ocCx.fill();
+  ocCx.strokeStyle='#e06050'; ocCx.lineWidth=2;
+  ocCx.beginPath(); ocCx.moveTo(230,cy); ocCx.lineTo(266,cy); ocCx.stroke();
+  ocCx.beginPath(); ocCx.moveTo(266,cy-11); ocCx.lineTo(266,cy+11); ocCx.lineTo(288,cy); ocCx.closePath();
+  ocCx.fillStyle=glow>0.05?'rgba(255,90,70,'+(0.4+glow*0.6)+')':'rgba(120,60,55,.6)'; ocCx.fill(); ocCx.stroke();
+  ocCx.beginPath(); ocCx.moveTo(288,cy-11); ocCx.lineTo(288,cy+11); ocCx.stroke();
+  ocCx.beginPath(); ocCx.moveTo(288,cy); ocCx.lineTo(330,cy); ocCx.stroke();
+  ocCx.fillStyle='#e06050'; ocCx.fillText('IR LED',280,cy+30);
+
+  if(glow>0.05){
+    ocCx.fillStyle='rgba(240,181,69,'+(0.5+glow*0.5)+')';
+    for(var ph=0;ph<3;ph++){
+      var px=W/2-30+(((t0*160)+ph*22)%64);
+      ocCx.beginPath(); ocCx.arc(px,cy-14+ph*14,3,0,Math.PI*2); ocCx.fill();
+    }
+  }
+
+  ocCx.strokeStyle='#2ecc8f'; ocCx.lineWidth=2;
+  ocCx.beginPath(); ocCx.arc(430,cy,20,0,Math.PI*2); ocCx.stroke();
+  ocCx.beginPath(); ocCx.moveTo(422,cy-12); ocCx.lineTo(422,cy+12); ocCx.stroke();
+  ocCx.beginPath(); ocCx.moveTo(422,cy-5); ocCx.lineTo(440,cy-16); ocCx.moveTo(422,cy+5); ocCx.lineTo(440,cy+16); ocCx.stroke();
+  ocCx.fillStyle='#2ecc8f'; ocCx.fillText('PHOTOTRANSISTOR',430,cy-30);
+  ocCx.beginPath(); ocCx.moveTo(440,cy-16); ocCx.lineTo(470,cy-16); ocCx.lineTo(560,cy-16); ocCx.stroke();
+  ocCx.beginPath(); ocCx.moveTo(440,cy+16); ocCx.lineTo(440,cy+30); ocCx.lineTo(560,cy+30); ocCx.stroke();
+  ocCx.fillStyle=weak?'#e06050':'#2ecc8f';
+  ocCx.fillText('V OUT (isolated)',625,cy-20);
+  ocCx.strokeStyle=weak?'#e06050':'#2ecc8f';
+  ocCx.beginPath(); ocCx.moveTo(560,cy-16); ocCx.lineTo(690,cy-16); ocCx.stroke();
+  ocCx.textAlign='left';
+
+  /* waveform lanes */
+  var laneH=110, y1=180, y2=305, span=0.004;
+  function lane(y,label,color){
+    ocCx.strokeStyle='rgba(120,150,190,.25)'; ocCx.lineWidth=1; ocCx.strokeRect(30,y,W-60,laneH);
+    ocCx.fillStyle=color; ocCx.font='bold 10px Arial'; ocCx.fillText(label,34,y+12);
+  }
+  lane(y1,'INPUT SIDE (referenced to noisy input ground)','#7d8fa5');
+  lane(y2,'ISOLATED OUTPUT SIDE (clean local ground)','#2ecc8f');
+
+  ocCx.strokeStyle='#7d8fa5'; ocCx.lineWidth=1.8; ocCx.beginPath();
+  for(var x=0;x<=W-60;x++){
+    var tt=t0-span+x/(W-60)*span, v=sig(tt)*3.3;
+    if(noise) v+=1.6*Math.sin(2*Math.PI*180*tt)+0.5*Math.sin(2*Math.PI*777*tt);
+    var yy=y1+laneH-12-v/6*(laneH-24);
+    yy=Math.max(y1+2,Math.min(y1+laneH-2,yy));
+    x===0?ocCx.moveTo(30+x,yy):ocCx.lineTo(30+x,yy);
+  }
+  ocCx.stroke();
+
+  ocCx.strokeStyle=weak?'#e06050':'#2ecc8f'; ocCx.lineWidth=2.2; ocCx.beginPath();
+  for(var x2=0;x2<=W-60;x2++){
+    var tt2=t0-span+x2/(W-60)*span, vo=sig(tt2)*voutHi;
+    var yy2=y2+laneH-12-vo/6*(laneH-24);
+    x2===0?ocCx.moveTo(30+x2,yy2):ocCx.lineTo(30+x2,yy2);
+  }
+  ocCx.stroke();
+  if(paused){ ocCx.fillStyle='#f0b545'; ocCx.font='bold 11px Arial'; ocCx.fillText('❚❚ PAUSED',W-100,y1-6); }
+
+  var iso = noise ? '<span class="r-on">Noise on input side only, output unaffected ✔</span>' : 'Inject noise to test the barrier';
+  var coup = weak ? '<span class="r-off">WEAK COUPLING, output below logic HIGH</span>' : '<span class="r-on">SOLID COUPLING</span>';
+  $('ocRead').innerHTML=
+    'I<sub>F</sub> (LED) : '+If.toFixed(1)+' mA<br>'+
+    'CTR : '+CTR+'%<br>'+
+    'I<sub>C</sub> = I<sub>F</sub>×CTR : <span class="r-on">'+Ic.toFixed(1)+' mA</span><br>'+
+    'V<sub>OUT</sub> high : '+voutHi.toFixed(2)+' V<br>'+
+    'Coupling : '+coup+'<br>'+
+    'Isolation : '+iso;
+}
+function ocLoop(now){
+  if($('optocoupler').hidden){ ocRunning=false; lastNow=null; return; }
+  if(lastNow!==null && !paused) simT += (now-lastNow)/1000;
+  lastNow=now;
+  drawOC();
+  requestAnimationFrame(ocLoop);
+}
+function startOC(){ if(!ocRunning){ ocRunning=true; lastNow=null; requestAnimationFrame(ocLoop); } }
+function togglePause(){ paused=!paused; $('pauseBtn').textContent = paused?'▶ Resume':'⏸ Pause'; }
+['ifled','ctr','noiseChk'].forEach(function(id){ $(id).addEventListener('input',function(){ if(paused) drawOC(); }); $(id).addEventListener('change',function(){ if(paused) drawOC(); }); });
+function resetOC(){
+  $('ifled').value=10; $('ctr').value=100; $('noiseChk').checked=false;
+  setSig('square', document.querySelector('#sigSeg button'));
+  if(paused) togglePause();
+}
+function setupOC(k){
+  resetOC();
+  var btns=document.querySelectorAll('#sigSeg button');
+  if(k==='glow'){ $('ifled').value=2; }
+  if(k==='noise'){ $('noiseChk').checked=true; }
+  if(k==='age'){ $('ctr').value=100; }
+  if(k==='data'){ setSig('data',btns[1]); }
+  drawOC();
+  $('ocCv').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+/* ================= INIT ================= */
+renderProgress();
+openPanel(location.hash==='#optocoupler' ? 'optocoupler' : 'grapher');
+window.addEventListener('hashchange',function(){
+  if(location.hash==='#optocoupler' && current!=='optocoupler') openPanel('optocoupler');
+  if(location.hash==='#grapher' && current!=='grapher') openPanel('grapher');
+});
+</script>
+</body>
+</html>
