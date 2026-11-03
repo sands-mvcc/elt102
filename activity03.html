@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ELT 102 Activity 3: BJT Curve &amp; Load-Line Explorer</title>
+<style>
+:root{
+  --navy:#0047AB; --navy-dark:#003580; --navy-darker:#002a66;
+  --green:#00a86b; --green-dark:#00875a;
+  --amber:#e8a020; --amber-text:#a86e00; --red:#c0392b;
+  --bg:#f5f7fa; --card:#ffffff; --card-alt:#eef2f8;
+  --text:#1c2733; --text-muted:#5a6b7d;
+  --border:#d7dfe9; --shadow:0 2px 10px rgba(0,40,90,.10);
+  --code-bg:#eef2f8; --strong:#0047AB;
+}
+[data-theme="dark"]{
+  --navy:#4d8cff; --navy-dark:#3a6fd0; --navy-darker:#0d1b2e;
+  --green:#2ecc8f; --green-dark:#22b07a;
+  --amber:#f0b545; --amber-text:#f0b545; --red:#e06050;
+  --bg:#0f1620; --card:#18222f; --card-alt:#1f2c3c;
+  --text:#e8eef5; --text-muted:#9fb0c2;
+  --border:#2c3a4c; --shadow:0 2px 12px rgba(0,0,0,.45);
+  --code-bg:#111a26; --strong:#8ab6ff;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:Georgia,'Times New Roman',serif;background:var(--bg);color:var(--text);line-height:1.65;transition:background .3s,color .3s;}
+a{color:var(--navy);}
+:focus-visible{outline:3px solid var(--amber);outline-offset:2px;}
+strong{color:var(--strong);}
+section{scroll-margin-top:70px;}
+
+/* ============ TOP BAR ============ */
+.topbar{background:linear-gradient(135deg,#0047AB,#002a66);color:#fff;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.25);}
+[data-theme="dark"] .topbar{background:linear-gradient(135deg,#0d1b2e,#001a40);}
+.topbar .brand{font-family:'Arial Narrow',Arial,sans-serif;font-weight:bold;font-size:1.05rem;letter-spacing:.04em;}
+.topbar .right{display:flex;gap:10px;align-items:center;}
+.badge{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);border-radius:20px;padding:3px 14px;font-family:'Arial Narrow',Arial,sans-serif;font-size:.85rem;}
+.theme-btn{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:20px;padding:5px 16px;cursor:pointer;font-family:'Arial Narrow',Arial,sans-serif;font-size:.85rem;}
+.theme-btn:hover{background:rgba(255,255,255,.3);}
+.crumbs{background:var(--card);border-bottom:1px solid var(--border);padding:8px 24px;font-family:'Arial Narrow',Arial,sans-serif;font-size:.85rem;color:var(--text-muted);}
+.crumbs a{text-decoration:none;}
+.crumbs a:hover{text-decoration:underline;}
+
+/* ============ HERO ============ */
+.hero{background:linear-gradient(135deg,#0047AB 0%,#003580 55%,#00875a 130%);color:#fff;padding:46px 24px 40px;}
+[data-theme="dark"] .hero{background:linear-gradient(135deg,#123a75 0%,#0d1b2e 55%,#0e4a36 130%);}
+.hero-inner{max-width:1080px;margin:0 auto;}
+.hero .kicker{display:inline-block;background:var(--green);color:#fff;border-radius:20px;padding:4px 16px;font-family:'Arial Narrow',Arial,sans-serif;font-size:.88rem;margin-bottom:14px;}
+.hero h1{font-size:2.3rem;line-height:1.2;margin-bottom:12px;max-width:820px;}
+.hero p{max-width:720px;font-size:1.08rem;opacity:.93;}
+.hero .how{margin-top:20px;display:flex;flex-wrap:wrap;gap:10px;font-family:'Arial Narrow',Arial,sans-serif;font-size:.92rem;}
+.hero .how a,.hero .how span{background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.3);border-radius:8px;padding:6px 14px;color:#fff;text-decoration:none;}
+.hero .how a:hover{background:rgba(255,255,255,.25);}
+
+/* ============ LAYOUT ============ */
+.wrap{max-width:1080px;margin:0 auto;padding:30px 22px 50px;}
+.sec-head{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;border-bottom:3px solid var(--green);padding-bottom:10px;margin-bottom:18px;}
+.sec-head h2{font-size:1.7rem;color:var(--navy);line-height:1.2;}
+.sec-head .from{font-family:'Arial Narrow',Arial,sans-serif;font-size:.9rem;color:var(--text-muted);}
+.lead{max-width:800px;margin-bottom:18px;}
+
+/* ============ SIM ============ */
+.sim{background:var(--card);border:2px solid var(--navy);border-radius:12px;box-shadow:var(--shadow);padding:22px;}
+.sim-grid{display:grid;grid-template-columns:1fr 300px;gap:22px;align-items:start;}
+@media(max-width:860px){.sim-grid{grid-template-columns:1fr;}}
+canvas{width:100%;height:auto;background:var(--card);border:1px solid var(--border);border-radius:8px;display:block;}
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:10px;font-family:'Arial Narrow',Arial,sans-serif;font-size:.86rem;color:var(--text-muted);}
+.legend i{display:inline-block;width:22px;height:0;vertical-align:middle;margin-right:6px;border-top:3px solid;}
+.legend i.lg-fam{border-top-color:var(--navy);opacity:.45;}
+.legend i.lg-sel{border-top-color:var(--green-dark);}
+.legend i.lg-ll{border-top-style:dashed;border-top-color:var(--amber);}
+.legend i.lg-q{width:12px;height:12px;border:none;border-radius:50%;background:var(--red);}
+.group{border:1px solid var(--border);border-radius:10px;padding:12px 14px 2px;margin-bottom:12px;}
+.group .g-title{font-family:'Arial Narrow',Arial,sans-serif;font-size:.85rem;color:var(--text-muted);margin-bottom:8px;}
+.ctrl{margin-bottom:13px;}
+.ctrl .lbl{display:flex;justify-content:space-between;font-family:'Arial Narrow',Arial,sans-serif;font-size:.9rem;font-weight:bold;color:var(--navy);margin-bottom:4px;}
+.ctrl .val{color:var(--green-dark);}
+.ctrl input[type=range]{width:100%;accent-color:var(--green);cursor:pointer;}
+.seg{display:flex;gap:6px;}
+.seg button{flex:1;font-family:'Arial Narrow',Arial,sans-serif;background:var(--card-alt);color:var(--text-muted);border:1px solid var(--border);border-radius:8px;padding:7px 4px;cursor:pointer;font-size:.85rem;}
+.seg button:hover{color:var(--navy);border-color:var(--navy);}
+.seg button.active{background:var(--navy);color:#fff;border-color:var(--navy);font-weight:bold;}
+.readout{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-family:'Courier New',monospace;font-size:.84rem;line-height:1.7;}
+.r-on{color:var(--green-dark);font-weight:bold;}
+.r-off{color:var(--red);font-weight:bold;}
+.r-bd{color:var(--amber-text);font-weight:bold;}
+.g-btns{display:flex;gap:8px;margin:4px 0 12px;}
+.g-btn{flex:1;background:var(--navy);color:#fff;border:none;border-radius:6px;padding:8px 4px;cursor:pointer;font-family:'Arial Narrow',Arial,sans-serif;font-size:.84rem;}
+.g-btn:hover{background:var(--navy-dark);}
+.g-btn.g-green{background:var(--green);}
+.g-btn.g-green:hover{background:var(--green-dark);}
+.callout{border-radius:10px;padding:14px 18px;margin:18px 0 0;border-left:6px solid var(--navy);background:rgba(0,71,171,.08);}
+.callout .co-title{font-family:'Arial Narrow',Arial,sans-serif;font-weight:bold;font-size:.95rem;color:var(--navy);margin-bottom:4px;}
+.formula{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-family:'Courier New',monospace;font-size:.92rem;margin:14px 0 0;overflow-x:auto;line-height:1.8;}
+
+/* ============ EXPLORATIONS ============ */
+.explore{margin-top:30px;display:grid;grid-template-columns:1fr 280px;gap:22px;align-items:start;}
+@media(max-width:860px){.explore{grid-template-columns:1fr;}}
+.explore h3{color:var(--navy);font-size:1.25rem;margin-bottom:4px;}
+.explore .hint{color:var(--text-muted);font-size:.93rem;margin-bottom:12px;}
+.steps{list-style:none;counter-reset:st;}
+.steps li{counter-increment:st;display:grid;grid-template-columns:34px 1fr auto;gap:12px;align-items:start;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;transition:border-color .2s,background .2s;}
+.steps li::before{content:counter(st);width:30px;height:30px;border-radius:50%;background:var(--card-alt);color:var(--navy);font-weight:bold;display:grid;place-items:center;font-family:'Arial Narrow',Arial,sans-serif;}
+.steps li.done{border-color:var(--green);background:rgba(0,168,107,.07);}
+.steps li.done::before{content:"✓";background:var(--green);color:#fff;}
+.steps .st-t{font-weight:bold;color:var(--navy);display:block;margin-bottom:2px;}
+.steps .st-d{font-size:.93rem;}
+.steps .st-a{display:flex;flex-direction:column;gap:6px;}
+.mini{font-family:'Arial Narrow',Arial,sans-serif;font-size:.8rem;border:1px solid var(--navy);color:var(--navy);background:transparent;border-radius:16px;padding:4px 12px;cursor:pointer;white-space:nowrap;}
+.mini:hover{background:var(--navy);color:#fff;}
+.mini.ok{border-color:var(--green-dark);color:var(--green-dark);}
+li.done .mini.ok{background:var(--green);border-color:var(--green);color:#fff;}
+@media(max-width:560px){.steps li{grid-template-columns:30px 1fr;} .steps .st-a{grid-column:2;flex-direction:row;}}
+.side-card{background:var(--card);border-left:6px solid var(--green);border-radius:0 10px 10px 0;box-shadow:var(--shadow);padding:18px 20px;}
+.side-card h4{color:var(--green-dark);margin-bottom:8px;font-size:1.02rem;}
+.side-card li{font-size:.92rem;margin-bottom:6px;}
+.side-card ul{margin-left:18px;}
+.bar{height:10px;border-radius:6px;background:var(--card-alt);overflow:hidden;margin:6px 0 4px;}
+.bar span{display:block;height:100%;width:0;background:var(--green);transition:width .35s;}
+.bar-lbl{font-family:'Arial Narrow',Arial,sans-serif;font-size:.85rem;color:var(--text-muted);}
+
+/* ============ TABLE ============ */
+.tbl-wrap{overflow-x:auto;margin-top:12px;}
+table.data{width:100%;border-collapse:collapse;font-size:.92rem;}
+table.data th{background:var(--navy);color:#fff;padding:9px 12px;text-align:left;font-family:'Arial Narrow',Arial,sans-serif;}
+[data-theme="dark"] table.data th{background:#1a3a68;}
+table.data td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:middle;font-family:'Courier New',monospace;font-size:.88rem;}
+table.data tr:nth-child(even) td{background:var(--card-alt);}
+table.data tr.cur td{background:rgba(0,168,107,.14);}
+table.data td.cond{font-family:Georgia,serif;font-size:.92rem;}
+
+/* ============ FOOT ============ */
+.foot-nav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:44px;}
+.foot-nav a{background:var(--navy);color:#fff;text-decoration:none;border-radius:26px;padding:11px 24px;font-family:'Arial Narrow',Arial,sans-serif;box-shadow:var(--shadow);}
+.foot-nav a:hover{background:var(--navy-dark);}
+.foot-nav a.home{background:var(--green);}
+.foot-nav a.home:hover{background:var(--green-dark);}
+footer{background:var(--navy-darker);color:rgba(255,255,255,.75);text-align:center;padding:24px 20px;font-family:'Arial Narrow',Arial,sans-serif;font-size:.83rem;line-height:1.7;}
+[data-theme="dark"] footer{background:#0a1420;}
+@media(max-width:640px){.hero h1{font-size:1.75rem;} .sim{padding:14px;}}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;scroll-behavior:auto!important;}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="brand">⚡ ELT 102 · Digital Logic &amp; Solid State Devices</span>
+  <div class="right">
+    <span class="badge">Activity 3</span>
+    <button class="theme-btn" onclick="toggleTheme()" aria-label="Toggle light and dark mode">🌓 Mode</button>
+  </div>
+</div>
+<nav class="crumbs" aria-label="Breadcrumb">
+  <a href="https://sands-mvcc.github.io/elt/index.html">Home</a> &nbsp;›&nbsp;
+  <a href="lab-bjt.html">Lab: NPN &amp; PNP Bipolar Junction Transistors</a> &nbsp;›&nbsp;
+  Activity 3: BJT Curve &amp; Load-Line Explorer
+</nav>
+
+<header class="hero">
+  <div class="hero-inner">
+    <span class="kicker">Unit 2 · Solid State Devices · Simulator activity</span>
+    <h1>Activity 3: BJT Curve &amp; Load-Line Explorer</h1>
+    <p>The transistor’s curves show what it <em>can</em> do; the load line shows what the circuit <em>lets</em> it do. The Q-point sits where they agree. Drive the base and slide that point from cutoff, up through the active region, and into saturation, then predict your Tinkercad readings before you build.</p>
+    <div class="how">
+      <span>⏱ About 30 minutes</span>
+      <a href="#explorer">📈 Explorer</a>
+      <a href="#explore">✅ Guided explorations</a>
+      <a href="#crosscheck">📋 Lab cross-check</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<section id="explorer">
+  <div class="sec-head">
+    <h2>📈 Interactive BJT Curve &amp; Load-Line Explorer</h2>
+    <span class="from">Source: BJT Tinkercad Lab, Figure 2 circuit (V<sub>CC</sub> = 5 V)</span>
+  </div>
+  <p class="lead">The navy curves are the transistor’s characteristic family: collector current versus V<sub>CE</sub> for different base currents. The green curve is <strong>your</strong> base current. The amber dashed line is the <strong>load line</strong> set by R<sub>C</sub>, and the red dot is the operating point where the two agree.</p>
+
+  <div class="sim">
+    <div class="sim-grid">
+      <div>
+        <canvas id="bjtCv" width="720" height="460" role="img" aria-label="BJT characteristic curve family with load line and live operating point"></canvas>
+        <div class="legend">
+          <span><i class="lg-fam"></i>I<sub>B</sub> curve family</span>
+          <span><i class="lg-sel"></i>Your I<sub>B</sub></span>
+          <span><i class="lg-ll"></i>Load line</span>
+          <span><i class="lg-q"></i>Q-point</span>
+        </div>
+        <div class="formula">
+          I<sub>B</sub> = (V<sub>BB</sub> − 0.7 V) / R<sub>B</sub> &nbsp;·&nbsp; I<sub>C(active)</sub> ≈ β · I<sub>B</sub><br>
+          Load line: I<sub>C</sub> = (V<sub>CC</sub> − V<sub>CE</sub>) / R<sub>C</sub> &nbsp;·&nbsp; I<sub>C(sat)</sub> = (V<sub>CC</sub> − 0.2 V) / R<sub>C</sub>
+        </div>
+      </div>
+      <div>
+        <div class="group">
+          <div class="g-title">Transistor</div>
+          <div class="ctrl">
+            <div class="lbl"><span>Type</span></div>
+            <div class="seg" id="typeSeg">
+              <button class="active" onclick="setType('npn',this)">NPN</button>
+              <button onclick="setType('pnp',this)">PNP</button>
+            </div>
+          </div>
+          <div class="ctrl">
+            <label class="lbl" for="betaSlide"><span>Current gain β</span><span class="val" id="betaVal">100</span></label>
+            <input type="range" id="betaSlide" min="50" max="300" step="10" value="100">
+          </div>
+        </div>
+        <div class="group">
+          <div class="g-title">Base drive</div>
+          <div class="ctrl">
+            <label class="lbl" for="vbbSlide"><span>Base drive V<sub>BB</sub></span><span class="val" id="vbbVal">5.0 V</span></label>
+            <input type="range" id="vbbSlide" min="0" max="5" step="0.1" value="5">
+          </div>
+          <div class="ctrl">
+            <div class="lbl"><span>Base resistor R<sub>B</sub></span></div>
+            <div class="seg" id="rbSeg">
+              <button data-v="470000" onclick="setRB(470000)">470 k</button>
+              <button data-v="100000" class="active" onclick="setRB(100000)">100 k</button>
+              <button data-v="47000" onclick="setRB(47000)">47 k</button>
+              <button data-v="10000" onclick="setRB(10000)">10 k</button>
+            </div>
+          </div>
+        </div>
+        <div class="group">
+          <div class="g-title">Collector circuit (sets the load line)</div>
+          <div class="ctrl">
+            <div class="lbl"><span>Collector resistor R<sub>C</sub></span></div>
+            <div class="seg" id="rcSeg">
+              <button data-v="470" onclick="setRC(470)">470 Ω</button>
+              <button data-v="1000" class="active" onclick="setRC(1000)">1 kΩ</button>
+              <button data-v="2200" onclick="setRC(2200)">2.2 kΩ</button>
+            </div>
+          </div>
+        </div>
+        <div class="g-btns">
+          <button class="g-btn g-green" onclick="presetBJT(5,470000)">Active</button>
+          <button class="g-btn g-green" onclick="presetBJT(5,10000)">Saturated</button>
+          <button class="g-btn" onclick="presetBJT(0,100000)">Cutoff</button>
+        </div>
+        <div class="readout" id="bjtRead" aria-live="polite"></div>
+        <div class="g-btns" style="margin-top:10px;">
+          <button class="g-btn g-green" id="sweepBtn" onclick="sweep()">▶ Sweep V<sub>BB</sub></button>
+          <button class="g-btn" onclick="resetBJT()">↺ Reset</button>
+        </div>
+      </div>
+    </div>
+    <div class="callout">
+      <div class="co-title">💡 What to notice</div>
+      With R<sub>B</sub> = 470 kΩ, drag β and the Q-point moves: in the active region the transistor’s gain sets I<sub>C</sub>. Switch to R<sub>B</sub> = 10 kΩ and drag β again: the Q-point barely budges. A saturated switch doesn’t care what β is, because the collector resistor rules. That indifference is why switching circuits are <em>designed</em> to saturate: they work the same with any transistor from the parts bin. The load line’s ends never move unless you change R<sub>C</sub> or V<sub>CC</sub>; the transistor must always operate somewhere on that line.
+    </div>
+  </div>
+</section>
+
+<section id="explore" class="explore">
+  <div>
+    <h3>Guided explorations</h3>
+    <p class="hint">Use “Set it up” to load the starting conditions, then mark each one done.</p>
+    <ol class="steps">
+      <li data-id="D1">
+        <div><span class="st-t">Walk through the three regions</span><span class="st-d">With R<sub>B</sub> = 100 kΩ, sweep V<sub>BB</sub> from 0 to 5 V. Record the V<sub>BB</sub> where I<sub>C</sub> first appears and the V<sub>BB</sub> where the region label flips to SATURATION.</span></div>
+        <div class="st-a"><button class="mini" onclick="setup('walk')">Set it up</button><button class="mini ok" onclick="markDone(this)">Mark done</button></div>
+      </li>
+      <li data-id="D2">
+        <div><span class="st-t">β matters in the active region</span><span class="st-d">At R<sub>B</sub> = 470 kΩ, drag β from 50 to 300. The base current stays fixed, yet the Q-point slides along the load line. Note I<sub>C</sub> at β = 50 and β = 300.</span></div>
+        <div class="st-a"><button class="mini" onclick="setup('betaAct')">Set it up</button><button class="mini ok" onclick="markDone(this)">Mark done</button></div>
+      </li>
+      <li data-id="D3">
+        <div><span class="st-t">β doesn’t matter in saturation</span><span class="st-d">At R<sub>B</sub> = 10 kΩ, drag β across its full range. Explain why I<sub>C</sub> hardly changes, and why I<sub>C</sub>/I<sub>B</sub> here is <em>not</em> β.</span></div>
+        <div class="st-a"><button class="mini" onclick="setup('betaSat')">Set it up</button><button class="mini ok" onclick="markDone(this)">Mark done</button></div>
+      </li>
+      <li data-id="D4">
+        <div><span class="st-t">Move the load line</span><span class="st-d">Keep R<sub>B</sub> = 470 kΩ and β = 300. Step R<sub>C</sub> through 470 Ω, 1 kΩ, and 2.2 kΩ. Which value pushes the same base drive into saturation, and why?</span></div>
+        <div class="st-a"><button class="mini" onclick="setup('rc')">Set it up</button><button class="mini ok" onclick="markDone(this)">Mark done</button></div>
+      </li>
+      <li data-id="D5">
+        <div><span class="st-t">The PNP mirror</span><span class="st-d">Switch to PNP at the Saturated preset. The curves are the same, but every polarity in the readout flips. State the turn-on condition for each type in terms of base versus emitter voltage.</span></div>
+        <div class="st-a"><button class="mini" onclick="setup('pnp')">Set it up</button><button class="mini ok" onclick="markDone(this)">Mark done</button></div>
+      </li>
+    </ol>
+  </div>
+  <aside class="side-card">
+    <h4>Your progress</h4>
+    <div class="bar"><span id="bar"></span></div>
+    <div class="bar-lbl" id="barLbl">0 of 5 explorations done</div>
+    <h4 style="margin-top:16px;">V<sub>CE</sub> is the referee</h4>
+    <ul>
+      <li><strong>≈ V<sub>CC</sub></strong>: cutoff, open switch.</li>
+      <li><strong>In between</strong>: active, I<sub>C</sub> ≈ β·I<sub>B</sub>.</li>
+      <li><strong>≈ 0.1–0.2 V</strong>: saturation, closed switch.</li>
+      <li>Measure β only in the active region.</li>
+    </ul>
+  </aside>
+</section>
+
+<section id="crosscheck" style="margin-top:34px;">
+  <div class="sec-head">
+    <h2>📋 Lab Cross-Check: Predict Data Table 2</h2>
+    <span class="from">R<sub>C</sub> = 1 kΩ, V<sub>CC</sub> = 5 V, β from the slider</span>
+  </div>
+  <p class="lead">These are the explorer’s predictions for each condition in the lab’s Data Table 2. Set β to the value you measure in Tinkercad, then compare. Use “Load” to put any row on the graph; the row matching the current settings is highlighted.</p>
+  <div class="tbl-wrap"><table class="data" id="xTbl">
+    <thead><tr><th>Condition</th><th>I<sub>B</sub></th><th>I<sub>C</sub></th><th>V<sub>CE</sub></th><th>I<sub>C</sub>/I<sub>B</sub></th><th>Region</th><th></th></tr></thead>
+    <tbody></tbody>
+  </table></div>
+</section>
+
+<div class="foot-nav">
+  <a href="lab-bjt.html">← Back to the BJT Lab</a>
+  <a class="home" href="https://sands-mvcc.github.io/elt/index.html">🏠 ELT 102 Home</a>
+  <a href="activity01.html">Activity 1: Diodes &amp; Optocouplers →</a>
+</div>
+</main>
+
+<footer>
+  ELT 102 · Digital Logic &amp; Solid State Devices · Activity 3: BJT Curve &amp; Load-Line Explorer<br>
+  Designed and Built by Lead Electronics Instructor &amp; Professor · Moraine Valley Community College<br>
+  © 2026 ELT 102 Course Materials. All rights reserved. Self-contained Offline Edition.
+</footer>
+
+<script>
+/* ================= HELPERS ================= */
+function sGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function sSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+function css(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function $(id){ return document.getElementById(id); }
+
+/* ================= THEME ================= */
+if(sGet('elt-theme')==='dark') document.documentElement.setAttribute('data-theme','dark');
+function toggleTheme(){
+  var d=document.documentElement.getAttribute('data-theme')==='dark';
+  if(d){ document.documentElement.removeAttribute('data-theme'); sSet('elt-theme','light'); }
+  else { document.documentElement.setAttribute('data-theme','dark'); sSet('elt-theme','dark'); }
+  drawBJT();
+}
+
+/* ================= CHECKLIST ================= */
+var DONE={};
+try{ DONE=JSON.parse(sGet('elt-act03-done')||'{}')||{}; }catch(e){ DONE={}; }
+function markDone(btn){
+  var id=btn.closest('li').getAttribute('data-id');
+  DONE[id]=!DONE[id]; sSet('elt-act03-done',JSON.stringify(DONE)); renderProgress();
+}
+function renderProgress(){
+  var items=document.querySelectorAll('.steps li'), n=0;
+  items.forEach(function(li){
+    var d=!!DONE[li.getAttribute('data-id')];
+    li.classList.toggle('done',d);
+    li.querySelector('.mini.ok').textContent=d?'Done ✓':'Mark done';
+    if(d) n++;
+  });
+  $('bar').style.width=(n/items.length*100)+'%';
+  $('barLbl').textContent=n+' of '+items.length+' explorations done';
+}
+
+/* ================= BJT MODEL ================= */
+var cv=$('bjtCv'), cx=cv.getContext('2d'), anim=null;
+var TYPE='npn', RB=100000, RC=1000;
+var VCC=5, VBE=0.7, VCESAT=0.2;
+var LAMBDA=0.015;          // Early-effect slope (from the lab model)
+var VK0=0.1, VK1=0.25;     // saturation knee: curves rise between 0.1 V and 0.25 V
+
+/* Collector characteristic: I_C vs V_CE for a given I_B (amps) */
+function icCurve(v,ib,beta){
+  if(ib<=0) return 0;
+  var s = v<=VK0 ? 0 : (v>=VK1 ? 1 : (v-VK0)/(VK1-VK0));
+  return beta*ib*(1+LAMBDA*v)*s;
+}
+/* Q-point = exact intersection of the I_B curve with the load line (bisection) */
+function solve(vbb,rb,rc,beta){
+  var ib=Math.max(0,(vbb-VBE)/rb);
+  if(ib===0) return {ib:0, ic:0, vce:VCC, region:'CUTOFF'};
+  var lo=0, hi=VCC;
+  for(var k=0;k<60;k++){
+    var mid=(lo+hi)/2;
+    if(icCurve(mid,ib,beta) > (VCC-mid)/rc) hi=mid; else lo=mid;
+  }
+  var v=(lo+hi)/2;
+  return {ib:ib, ic:(VCC-v)/rc, vce:v, region: v<VK1 ? 'SATURATION' : 'ACTIVE'};
+}
+function niceStep(x){ var p=Math.pow(10,Math.floor(Math.log10(x))), m=x/p; return (m<1.5?1:m<3.5?2:m<7.5?5:10)*p; }
+
+/* ================= CONTROLS ================= */
+function segSelect(id,val){ document.querySelectorAll('#'+id+' button').forEach(function(b){ b.classList.toggle('active', +b.dataset.v===val); }); }
+function setType(t,btn){ TYPE=t; document.querySelectorAll('#typeSeg button').forEach(function(x){ x.classList.toggle('active',x===btn); }); drawBJT(); }
+function setRB(r){ RB=r; segSelect('rbSeg',r); drawBJT(); }
+function setRC(r){ RC=r; segSelect('rcSeg',r); drawBJT(); }
+function presetBJT(vbb,rb){ stopSweep(); $('vbbSlide').value=vbb; setRB(rb); }
+$('vbbSlide').addEventListener('input',function(){ stopSweep(); drawBJT(); });
+$('betaSlide').addEventListener('input',drawBJT);
+
+/* ================= DRAW ================= */
+function drawBJT(){
+  var VBB=parseFloat($('vbbSlide').value), BETA=parseInt($('betaSlide').value,10);
+  $('vbbVal').textContent=VBB.toFixed(1)+' V';
+  $('betaVal').textContent=BETA;
+
+  var q=solve(VBB,RB,RC,BETA);
+  var icSat=(VCC-VCESAT)/RC;
+  var W=cv.width, H=cv.height, padL=58, padR=16, padT=20, padB=46;
+  var iMax=VCC/RC*1.12, vMax=VCC*1.04;
+  function X(v){ return padL+v/vMax*(W-padL-padR); }
+  function Y(i){ return H-padB-(i/iMax)*(H-padT-padB); }
+
+  cx.fillStyle=css('--card'); cx.fillRect(0,0,W,H);
+
+  /* saturation zone shading */
+  cx.fillStyle='rgba(232,160,32,.10)'; cx.fillRect(X(0),padT,X(VK1)-X(0),H-padT-padB);
+
+  /* grid */
+  cx.strokeStyle=css('--border'); cx.lineWidth=1; cx.font='11px Arial'; cx.fillStyle=css('--text-muted'); cx.textAlign='center';
+  for(var v=0; v<=VCC; v+=1){
+    cx.beginPath(); cx.moveTo(X(v),padT); cx.lineTo(X(v),H-padB); cx.stroke();
+    cx.fillText(v+'', X(v), H-padB+16);
+  }
+  cx.textAlign='right';
+  var iStep=niceStep(iMax*1000/5);
+  for(var im=0; im<=iMax*1000+1e-9; im+=iStep){
+    cx.beginPath(); cx.moveTo(padL,Y(im/1000)); cx.lineTo(W-padR,Y(im/1000)); cx.stroke();
+    cx.fillText(+im.toFixed(1)+'', padL-7, Y(im/1000)+4);
+  }
+  cx.strokeStyle=css('--text-muted'); cx.lineWidth=1.4; cx.strokeRect(padL,padT,W-padL-padR,H-padT-padB);
+  cx.fillStyle=css('--text'); cx.font='bold 12px Arial'; cx.textAlign='center';
+  cx.fillText('|V CE|  (volts)'+(TYPE==='pnp'?'   · PNP: magnitudes shown, polarities mirrored':''), (padL+W-padR)/2, H-10);
+  cx.save(); cx.translate(16,(padT+H-padB)/2); cx.rotate(-Math.PI/2); cx.fillText('|I C|  (mA)',0,0); cx.restore();
+
+  /* curve family: fixed I_B values (independent of β) so β changes move the curves, not the labels */
+  var ibStep=niceStep(icSat/100/4);
+  var navy=css('--navy'), selC=css('--green-dark');
+  var selLabelY = q.ib>0 ? Y(Math.min(icCurve(VCC,q.ib,BETA),iMax*0.96)) : -99;
+  cx.textAlign='right';
+  for(var k=1;k<=5;k++){
+    var ibk=ibStep*k;
+    cx.strokeStyle=navy; cx.globalAlpha=0.4; cx.lineWidth=1.6;
+    traceCurve(ibk);
+    var top=icCurve(VCC,ibk,BETA);
+    if(top<iMax*0.96 && Math.abs(Y(top)-selLabelY)>13){
+      cx.globalAlpha=0.75; cx.fillStyle=navy; cx.font='10px Arial';
+      cx.fillText(fmtI(ibk), W-padR-6, Y(top)-4);
+    }
+    cx.globalAlpha=1;
+  }
+  /* the student's actual I_B curve */
+  if(q.ib>0){
+    cx.strokeStyle=selC; cx.lineWidth=3; traceCurve(q.ib);
+    var t2=icCurve(VCC,q.ib,BETA);
+    cx.fillStyle=selC; cx.font='bold 11px Arial';
+    if(t2<iMax*0.96){ cx.fillText('I B = '+fmtI(q.ib), W-padR-6, Y(t2)-5); }
+    else { cx.textAlign='left'; cx.fillText('I B = '+fmtI(q.ib)+' (rises off the top)', X(VK1)+8, padT+14); cx.textAlign='right'; }
+  }
+  function traceCurve(ib){
+    cx.beginPath();
+    for(var px=padL; px<=W-padR; px+=1.5){
+      var vv=(px-padL)/(W-padL-padR)*vMax, py=Y(Math.min(icCurve(vv,ib,BETA),iMax));
+      px===padL?cx.moveTo(px,py):cx.lineTo(px,py);
+    }
+    cx.stroke();
+  }
+
+  /* load line */
+  cx.strokeStyle=css('--amber'); cx.lineWidth=2.4; cx.setLineDash([7,5]);
+  cx.beginPath(); cx.moveTo(X(VCC),Y(0)); cx.lineTo(X(0),Y(VCC/RC)); cx.stroke(); cx.setLineDash([]);
+  cx.fillStyle=css('--amber-text'); cx.font='bold 10px Arial'; cx.textAlign='left';
+  cx.fillText('LOAD LINE  (R C = '+fmtR(RC)+')', X(VCC*0.42)+8, Y(VCC/RC*0.58)-6);
+  cx.fillText('V CC / R C = '+(VCC/RC*1000).toFixed(1)+' mA', X(0.45), Y((VCC-0.45)/RC)+18);
+
+  /* region hints */
+  cx.fillStyle=css('--text-muted'); cx.font='italic 10px Georgia';
+  cx.fillText('saturation', X(0)+4, H-padB-6);
+  cx.textAlign='right'; cx.fillText('cutoff', X(VCC)-6, H-padB-6); cx.textAlign='left';
+
+  /* Q-point with projections */
+  var qx=X(q.vce), qy=Y(q.ic), red=css('--red');
+  cx.strokeStyle=red; cx.lineWidth=1; cx.setLineDash([3,4]);
+  cx.beginPath(); cx.moveTo(qx,qy); cx.lineTo(qx,H-padB); cx.moveTo(qx,qy); cx.lineTo(padL,qy); cx.stroke(); cx.setLineDash([]);
+  cx.fillStyle=red; cx.beginPath(); cx.arc(qx,qy,7.5,0,Math.PI*2); cx.fill();
+  cx.strokeStyle=css('--card'); cx.lineWidth=2; cx.stroke();
+  cx.font='bold 12px Arial'; cx.fillText('Q', qx+11, qy-9);
+
+  /* readout */
+  var s=(TYPE==='pnp')?-1:1;
+  var cls={CUTOFF:'r-off',ACTIVE:'r-on',SATURATION:'r-bd'}[q.region];
+  var ratio = q.ib>0 ? (q.ic/q.ib).toFixed(0) : '—';
+  var note = q.region==='ACTIVE' ? ' ≈ β ✓' : q.region==='SATURATION' ? ' <span class="r-off">(≠ β!)</span>' : '';
+  $('bjtRead').innerHTML=
+    '<span class="'+cls+'">'+TYPE.toUpperCase()+' · '+q.region+'</span><br>'+
+    'V<sub>BE</sub> = '+(q.ib>0 ? (s*VBE).toFixed(2)+' V' : (s*Math.min(VBB,VBE)).toFixed(2)+' V (off)')+'<br>'+
+    'I<sub>B</sub> = '+(s*q.ib*1e6).toFixed(1)+' µA<br>'+
+    'I<sub>C</sub> = '+(s*q.ic*1000).toFixed(2)+' mA<br>'+
+    'V<sub>CE</sub> = '+(s*q.vce).toFixed(2)+' V<br>'+
+    'I<sub>C</sub>/I<sub>B</sub> = '+ratio+note+'<br>'+
+    'I<sub>C(sat)</sub> cap = '+(icSat*1000).toFixed(2)+' mA<br>'+
+    (TYPE==='pnp' ? 'PNP: ON with base LOW' : 'NPN: ON with base HIGH');
+
+  renderCrossCheck(BETA, VBB);
+}
+function fmtI(a){ var u=a*1e6; return (u>=100?u.toFixed(0):u>=10?u.toFixed(0):u.toFixed(1))+' µA'; }
+function fmtR(r){ return r>=1000 ? (r/1000)+' kΩ' : r+' Ω'; }
+
+/* ================= LAB CROSS-CHECK TABLE ================= */
+var ROWS=[
+  {c:'Base open (cutoff)', vbb:0, rb:100000},
+  {c:'R<sub>B</sub> = 470 kΩ · 5 V', vbb:5, rb:470000},
+  {c:'R<sub>B</sub> = 100 kΩ · 5 V', vbb:5, rb:100000},
+  {c:'R<sub>B</sub> = 10 kΩ · 5 V', vbb:5, rb:10000},
+  {c:'470 kΩ · supply 2.0 V', vbb:2, rb:470000},
+  {c:'470 kΩ · supply 1.0 V', vbb:1, rb:470000}
+];
+function renderCrossCheck(beta, vbbNow){
+  var body=document.querySelector('#xTbl tbody'), h='';
+  ROWS.forEach(function(r,i){
+    var q=solve(r.vbb,r.rb,1000,beta);
+    var isCur = RC===1000 && Math.abs(vbbNow-r.vbb)<0.05 && (r.vbb===0 ? vbbNow<=VBE : RB===r.rb);
+    var cls={CUTOFF:'r-off',ACTIVE:'r-on',SATURATION:'r-bd'}[q.region];
+    h+='<tr'+(isCur?' class="cur"':'')+'><td class="cond">'+r.c+'</td>'+
+       '<td>'+(q.ib*1e6).toFixed(1)+' µA</td><td>'+(q.ic*1000).toFixed(2)+' mA</td><td>'+q.vce.toFixed(2)+' V</td>'+
+       '<td>'+(q.ib>0?(q.ic/q.ib).toFixed(0):'—')+'</td><td><span class="'+cls+'">'+q.region+'</span></td>'+
+       '<td><button class="mini" onclick="loadRow('+i+')">Load</button></td></tr>';
+  });
+  body.innerHTML=h;
+}
+function loadRow(i){
+  var r=ROWS[i]; stopSweep();
+  setRC(1000); $('vbbSlide').value=r.vbb; setRB(r.rb);
+  $('explorer').scrollIntoView({behavior:'smooth'});
+}
+
+/* ================= SWEEP / RESET / SETUPS ================= */
+function stopSweep(){ if(anim){ cancelAnimationFrame(anim); anim=null; } $('sweepBtn').innerHTML='▶ Sweep V<sub>BB</sub>'; }
+function sweep(){
+  if(anim){ stopSweep(); return; }
+  var s=$('vbbSlide'), v=0, last=null;
+  $('sweepBtn').textContent='■ Stop sweep';
+  function step(now){
+    if(last===null) last=now;
+    v+=(now-last)/1000*0.8; last=now;   // 0.8 V per second
+    if(v>=5){ s.value=5; drawBJT(); stopSweep(); return; }
+    s.value=v.toFixed(1); drawBJT(); anim=requestAnimationFrame(step);
+  }
+  anim=requestAnimationFrame(step);
+}
+function resetBJT(){
+  stopSweep(); $('betaSlide').value=100; $('vbbSlide').value=5;
+  setType('npn',document.querySelector('#typeSeg button')); RC=1000; segSelect('rcSeg',1000); setRB(100000);
+}
+function setup(k){
+  resetBJT();
+  if(k==='walk'){ $('vbbSlide').value=0; }
+  if(k==='betaAct'){ $('betaSlide').value=50; RB=470000; segSelect('rbSeg',RB); }
+  if(k==='betaSat'){ $('betaSlide').value=50; RB=10000; segSelect('rbSeg',RB); }
+  if(k==='rc'){ $('betaSlide').value=300; RB=470000; segSelect('rbSeg',RB); RC=470; segSelect('rcSeg',RC); }
+  if(k==='pnp'){ RB=10000; segSelect('rbSeg',RB); setType('pnp',document.querySelectorAll('#typeSeg button')[1]); }
+  drawBJT();
+  $('explorer').scrollIntoView({behavior:'smooth'});
+}
+
+/* ================= INIT ================= */
+renderProgress();
+drawBJT();
+</script>
+</body>
+</html>
