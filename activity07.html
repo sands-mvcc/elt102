@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4-Bit Up/Down Counter — Digital Electronics Lab</title>
+<!-- Apply saved theme before first paint (prevents a flash of the wrong theme). Default = light. -->
+<script>
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem('elt102-counter-theme'); } catch (e) {}
+    document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light');
+  })();
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  /* ═══════════════ THEME TOKENS ═══════════════
+     Light is the default (:root). Dark keeps the original lab palette.
+     Every color in the page comes from these tokens, including the canvas. */
+  :root {
+    color-scheme: light;
+    --bg:          #f4f7fb;
+    --panel:       #ffffff;
+    --surface:     #eef3f9;   /* inset boxes, table headers, quiz options */
+    --off:         #dbe3ec;   /* unlit LED / segment */
+    --off-border:  #c3d0de;
+    --border:      #c9d6e4;
+    --row-border:  #e1e8f0;
+    --heading:     #0b1f3a;
+    --accent:      #0047ab;
+    --accent2:     #d9541e;
+    --green:       #00a86b;
+    --red:         #d11a45;
+    --yellow:      #a87800;
+    --purple:      #7a2fc2;
+    --text:        #1f2d3d;
+    --text-dim:    #5b6f86;
+    --on-lit:      #ffffff;   /* text on a lit (filled) bit button */
+    --canvas-bg:   #f8fbfe;
+    --glow-pct:    28%;       /* glow strength; softer on light backgrounds */
+    --tint-a:      6%;        /* button gradient tints */
+    --tint-b:      14%;
+    --grid-pct:    5%;
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg:          #0a0e1a;
+    --panel:       #111827;
+    --surface:     #0a1220;
+    --off:         #0a1a2a;
+    --off-border:  #1e3a5f;
+    --border:      #1e3a5f;
+    --row-border:  #1a2a3a;
+    --heading:     #ffffff;
+    --accent:      #00d4ff;
+    --accent2:     #ff6b35;
+    --green:       #39ff14;
+    --red:         #ff2d55;
+    --yellow:      #ffd700;
+    --purple:      #bf5fff;
+    --text:        #c8d8e8;
+    --text-dim:    #5a7a9a;
+    --on-lit:      #000000;
+    --canvas-bg:   #060c18;
+    --glow-pct:    60%;
+    --tint-a:      20%;
+    --tint-b:      34%;
+    --grid-pct:    2%;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(ellipse at 20% 10%, color-mix(in srgb, var(--accent) 12%, transparent) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 90%, color-mix(in srgb, var(--accent) 10%, transparent) 0%, transparent 60%),
+      linear-gradient(0deg, color-mix(in srgb, var(--accent) var(--grid-pct), transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--accent) var(--grid-pct), transparent) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+    transition: background-color .25s, color .25s;
+  }
+
+  /* ── HEADER ── */
+  header {
+    text-align: center;
+    padding: 2rem 1rem 1rem;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  header::after {
+    content:'';
+    position:absolute; bottom:-1px; left:50%; transform:translateX(-50%);
+    width:200px; height:2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+  .lab-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: .7rem; letter-spacing: .25em;
+    color: var(--accent); text-transform: uppercase;
+    margin-bottom: .4rem;
+  }
+  h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(1.4rem, 4vw, 2.4rem);
+    font-weight: 900;
+    color: var(--heading);
+    text-shadow: 0 0 30px color-mix(in srgb, var(--accent) 40%, transparent);
+    letter-spacing: .06em;
+  }
+  h1 span { color: var(--accent); }
+  .subtitle { color: var(--text-dim); font-size: .85rem; margin-top:.3rem; }
+
+  /* ── THEME TOGGLE ── */
+  .theme-toggle {
+    position: absolute; top: 1rem; right: 1rem;
+    display: inline-flex; align-items: center; gap: .45rem;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: .75rem; letter-spacing: .05em;
+    color: var(--text);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: .45rem .9rem;
+    cursor: pointer;
+    transition: border-color .15s, color .15s, background .15s;
+  }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+  .theme-toggle:focus-visible,
+  .btn:focus-visible, .btn-preset:focus-visible, .btn-load:focus-visible,
+  .bit-btn:focus-visible, .quiz-opt:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+  .theme-toggle .icon { font-size: .95rem; line-height: 1; }
+  @media (max-width: 640px) {
+    .theme-toggle { position: static; margin-top: .9rem; }
+  }
+
+  /* ── MAIN GRID ── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+    max-width: 1200px;
+    margin: 1.4rem auto;
+    padding: 0 1rem;
+  }
+  @media(max-width:800px){ .main-grid{ grid-template-columns:1fr; } }
+
+  /* ── PANEL ── */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.2rem 1.4rem;
+    position: relative;
+    overflow: hidden;
+    transition: background-color .25s, border-color .25s;
+  }
+  .panel::before {
+    content:'';
+    position:absolute; top:0; left:0; right:0; height:2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity:.5;
+  }
+  .panel-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: .65rem; letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .panel-title::before {
+    content:''; display:block; width:8px; height:8px;
+    background: var(--accent); border-radius:50%;
+    box-shadow: 0 0 12px color-mix(in srgb, var(--accent) var(--glow-pct), transparent);
+  }
+
+  /* ── BIG DISPLAY ── */
+  .display-panel { grid-column: 1 / -1; }
+
+  .counter-display {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    margin: .5rem 0;
+  }
+
+  /* Seven-segment style */
+  .seg-group { display: flex; gap: 1.2rem; align-items: center; }
+
+  .seg-digit {
+    width: 54px; height: 90px;
+    position: relative;
+    filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 30%, transparent));
+  }
+  .seg {
+    position: absolute;
+    background: var(--off);
+    border-radius: 3px;
+    transition: background .1s, box-shadow .1s;
+  }
+  .seg.on {
+    background: var(--accent);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) var(--glow-pct), transparent),
+                0 0 20px color-mix(in srgb, var(--accent) 30%, transparent);
+  }
+  .seg.on.going-down {
+    background: var(--accent2);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent2) var(--glow-pct), transparent),
+                0 0 20px color-mix(in srgb, var(--accent2) 30%, transparent);
+  }
+  .seg-a { top:2px;    left:8px;  width:38px; height:6px; }
+  .seg-g { top:42px;   left:8px;  width:38px; height:6px; }
+  .seg-d { top:82px;   left:8px;  width:38px; height:6px; }
+  .seg-f { top:8px;    left:2px;  width:6px;  height:32px; }
+  .seg-e { top:50px;   left:2px;  width:6px;  height:32px; }
+  .seg-b { top:8px;    right:2px; width:6px;  height:32px; }
+  .seg-c { top:50px;   right:2px; width:6px;  height:32px; }
+
+  /* Binary LED row */
+  .bit-row { display: flex; gap: .9rem; align-items: flex-end; }
+  .bit-col { text-align:center; }
+  .bit-label {
+    font-family:'Share Tech Mono',monospace;
+    font-size:.6rem; color:var(--text-dim);
+    margin-bottom:.3rem;
+  }
+  .bit-led {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 2px solid var(--off-border);
+    background: var(--off);
+    transition: background .1s, box-shadow .1s;
+    position:relative;
+    cursor:default;
+  }
+  .bit-led.on {
+    background: var(--green);
+    border-color: var(--green);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--green) var(--glow-pct), transparent),
+                0 0 28px color-mix(in srgb, var(--green) 30%, transparent);
+  }
+  .bit-led.on.going-down {
+    background: var(--accent2);
+    border-color: var(--accent2);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--accent2) var(--glow-pct), transparent),
+                0 0 28px color-mix(in srgb, var(--accent2) 30%, transparent);
+  }
+  .bit-val {
+    font-family:'Share Tech Mono',monospace;
+    font-size:.75rem; color:var(--text-dim);
+    margin-top:.3rem;
+  }
+
+  /* Direction arrow */
+  .direction-indicator { display:flex; flex-direction:column; align-items:center; gap:.3rem; }
+  .dir-arrow {
+    font-size: 2.4rem;
+    transition: all .3s;
+    filter: drop-shadow(0 0 8px currentColor);
+  }
+  .dir-arrow.up   { color: var(--accent);  transform: rotate(0deg); }
+  .dir-arrow.down { color: var(--accent2); transform: rotate(180deg); }
+  .dir-label { font-family:'Orbitron',sans-serif; font-size:.7rem; letter-spacing:.15em; }
+  .dir-label.up   { color:var(--accent); }
+  .dir-label.down { color:var(--accent2); }
+
+  /* Dec/Hex readout */
+  .readout-row { display:flex; justify-content:center; gap:2rem; margin-top:1rem; flex-wrap:wrap; }
+  .readout-box {
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:.5rem 1.2rem;
+    text-align:center;
+  }
+  .readout-box .r-label {
+    font-family:'Share Tech Mono',monospace;
+    font-size:.55rem; color:var(--text-dim); letter-spacing:.2em;
+    text-transform:uppercase;
+  }
+  .readout-box .r-val {
+    font-family:'Orbitron',monospace;
+    font-size:1.6rem; font-weight:700;
+    color:var(--heading);
+  }
+  #dec-val { text-shadow: 0 0 12px color-mix(in srgb, var(--accent) var(--glow-pct), transparent); }
+  #hex-val { text-shadow: 0 0 12px color-mix(in srgb, var(--purple) var(--glow-pct), transparent); color:var(--purple); }
+  #bin-str { font-size:1.2rem; letter-spacing:.15em; color:var(--yellow);
+             text-shadow:0 0 10px color-mix(in srgb, var(--yellow) var(--glow-pct), transparent); }
+
+  /* Overflow flags */
+  .flag-row { display:flex; justify-content:center; gap:1rem; margin-top:.8rem; flex-wrap:wrap; }
+  .flag {
+    display:flex; align-items:center; gap:.5rem;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:.4rem .9rem;
+    font-family:'Share Tech Mono',monospace;
+    font-size:.7rem;
+  }
+  .flag .flag-led {
+    width:12px; height:12px; border-radius:50%;
+    background:var(--off); border:1px solid var(--off-border);
+    transition: all .15s;
+  }
+  .flag .flag-led.active {
+    background:var(--red);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--red) var(--glow-pct), transparent);
+    border-color:var(--red);
+  }
+
+  /* ── CONTROLS ── */
+  .controls-grid { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; }
+  @media(max-width:500px){ .controls-grid{ grid-template-columns:1fr; } }
+
+  .btn {
+    --c: var(--accent);
+    font-family:'Orbitron',sans-serif;
+    font-size:.7rem; letter-spacing:.1em;
+    text-transform:uppercase;
+    border-radius:7px;
+    padding:.75rem 1rem;
+    cursor:pointer;
+    transition: all .18s;
+    position:relative; overflow:hidden;
+    color: var(--c);
+    border: 1px solid var(--c);
+    background: linear-gradient(135deg,
+      color-mix(in srgb, var(--c) var(--tint-a), var(--panel)),
+      color-mix(in srgb, var(--c) var(--tint-b), var(--panel)));
+    box-shadow: 0 0 8px color-mix(in srgb, var(--c) 18%, transparent);
+  }
+  .btn::after {
+    content:''; position:absolute;
+    inset:0; background:transparent;
+    transition: background .15s;
+  }
+  .btn:hover::after { background: color-mix(in srgb, var(--c) 6%, transparent); }
+  .btn:hover { box-shadow: 0 0 18px color-mix(in srgb, var(--c) 45%, transparent); }
+  .btn:active { transform:scale(.96); }
+
+  .btn-step  { --c: var(--accent); }
+  .btn-auto  { --c: var(--green); }
+  .btn-auto.running { --c: var(--red); }
+  .btn-dir   { --c: var(--accent2); }
+  .btn-reset { --c: var(--purple); }
+
+  .btn-preset {
+    font-family:'Share Tech Mono',monospace;
+    font-size:.72rem;
+    background:var(--surface);
+    border:1px solid var(--border);
+    color: var(--text);
+    padding:.55rem .8rem;
+    border-radius:6px;
+    cursor:pointer;
+    transition:all .15s;
+    text-align:left;
+  }
+  .btn-preset:hover { border-color:var(--accent); color:var(--accent);
+                      background:color-mix(in srgb, var(--accent) 8%, var(--surface)); }
+  .btn-preset:disabled { opacity:.45; cursor:not-allowed; }
+
+  /* Speed slider */
+  .slider-wrap { margin-top:.8rem; }
+  .slider-wrap label {
+    font-family:'Share Tech Mono',monospace;
+    font-size:.65rem; color:var(--text-dim); letter-spacing:.15em;
+    display:flex; justify-content:space-between; margin-bottom:.4rem;
+  }
+  input[type=range] {
+    width:100%; appearance:none; -webkit-appearance:none;
+    height:5px; border-radius:3px;
+    background:linear-gradient(90deg, var(--accent) var(--pct,50%), var(--border) var(--pct,50%));
+    outline:none; cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance:none; appearance:none; width:16px; height:16px;
+    border-radius:50%; background:var(--accent);
+    box-shadow:0 0 8px color-mix(in srgb, var(--accent) var(--glow-pct), transparent);
+  }
+  input[type=range]::-moz-range-thumb {
+    width:16px; height:16px; border:none;
+    border-radius:50%; background:var(--accent);
+  }
+
+  /* Manual load */
+  .load-row { display:flex; gap:.5rem; align-items:center; margin-top:.8rem; }
+  .load-bits { display:flex; gap:.3rem; }
+  .bit-btn {
+    width:34px; height:34px;
+    border-radius:5px;
+    border:1px solid var(--border);
+    background:var(--surface);
+    color:var(--text-dim);
+    font-family:'Share Tech Mono',monospace;
+    font-size:.9rem;
+    cursor:pointer;
+    transition:all .15s;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .bit-btn.on {
+    background:var(--green); border-color:var(--green);
+    color:var(--on-lit);
+    box-shadow:0 0 10px color-mix(in srgb, var(--green) var(--glow-pct), transparent);
+  }
+  .btn-load {
+    flex:1;
+    font-family:'Orbitron',sans-serif; font-size:.65rem;
+    background: linear-gradient(135deg,
+      color-mix(in srgb, var(--yellow) var(--tint-a), var(--panel)),
+      color-mix(in srgb, var(--yellow) var(--tint-b), var(--panel)));
+    color:var(--yellow); border:1px solid var(--yellow);
+    border-radius:6px; padding:.5rem;
+    cursor:pointer; transition:all .15s; letter-spacing:.08em;
+    text-transform:uppercase;
+  }
+  .btn-load:hover { box-shadow:0 0 14px color-mix(in srgb, var(--yellow) 40%, transparent); }
+
+  /* ── TRUTH TABLE ── */
+  .truth-table {
+    width:100%; border-collapse:collapse;
+    font-family:'Share Tech Mono',monospace;
+    font-size:.72rem;
+  }
+  .truth-table th {
+    background:var(--surface);
+    border:1px solid var(--border);
+    padding:.5rem .7rem;
+    text-align:center;
+    color:var(--accent);
+    letter-spacing:.1em;
+    font-size:.62rem;
+    position: sticky; top: 0;
+  }
+  .truth-table td {
+    border:1px solid var(--row-border);
+    padding:.4rem .7rem;
+    text-align:center;
+    color:var(--text);
+    transition: background .2s;
+  }
+  .truth-table tr.highlight td {
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    color:var(--heading);
+    font-weight:600;
+  }
+  .truth-table tr.highlight.going-down td {
+    background: color-mix(in srgb, var(--accent2) 14%, transparent);
+  }
+
+  /* ── CONCEPT CARDS ── */
+  .concept-cards { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; }
+  @media(max-width:500px){ .concept-cards{grid-template-columns:1fr;} }
+
+  .c-card {
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:.8rem;
+  }
+  .c-card h4 {
+    font-family:'Orbitron',sans-serif;
+    font-size:.65rem; letter-spacing:.12em;
+    color:var(--accent); margin-bottom:.5rem;
+  }
+  .c-card p { font-size:.75rem; line-height:1.55; color:var(--text-dim); }
+  .c-card.orange h4 { color:var(--accent2); }
+  .c-card.green  h4 { color:var(--green); }
+  .c-card.purple h4 { color:var(--purple); }
+
+  /* ── WAVEFORM ── */
+  #waveform-canvas {
+    width:100%; border-radius:6px;
+    background:var(--canvas-bg);
+    border:1px solid var(--border);
+    display:block;
+  }
+
+  /* ── TIMELINE ── */
+  .history-bar { display:flex; gap:3px; flex-wrap:wrap; margin-top:.5rem; }
+  .hist-dot {
+    width:22px; height:22px;
+    border-radius:4px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Share Tech Mono',monospace;
+    font-size:.55rem;
+    color:var(--text-dim);
+    transition:all .2s;
+    flex-shrink:0;
+  }
+  .hist-dot.up   { background:color-mix(in srgb, var(--accent) 15%, transparent);  color:var(--accent);  border-color:var(--accent); }
+  .hist-dot.down { background:color-mix(in srgb, var(--accent2) 15%, transparent); color:var(--accent2); border-color:var(--accent2); }
+
+  /* ── QUIZ ── */
+  .quiz-section { margin-top:.5rem; }
+  .quiz-q { font-size:.82rem; margin-bottom:.7rem; line-height:1.5; }
+  .quiz-options { display:grid; grid-template-columns:1fr 1fr; gap:.5rem; }
+  .quiz-opt {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:7px; padding:.55rem .8rem;
+    cursor:pointer; font-size:.75rem;
+    transition:all .15s; color:var(--text);
+    font-family:'Share Tech Mono',monospace;
+    text-align:left;
+  }
+  .quiz-opt:hover { border-color:var(--accent); color:var(--accent); }
+  .quiz-opt.correct { border-color:var(--green); color:var(--green); background:color-mix(in srgb, var(--green) 10%, transparent); }
+  .quiz-opt.wrong   { border-color:var(--red);   color:var(--red);   background:color-mix(in srgb, var(--red) 10%, transparent); }
+  .quiz-feedback {
+    margin-top:.6rem; font-size:.75rem; min-height:1.2em;
+    font-family:'Share Tech Mono',monospace;
+  }
+  .quiz-nav { margin-top:.8rem; display:flex; gap:.5rem; }
+
+  /* Pulse animation */
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+  .pulsing { animation: pulse .6s ease-in-out 3; }
+
+  /* Status bar */
+  .status-bar {
+    font-family:'Share Tech Mono',monospace;
+    font-size:.65rem; color:var(--text-dim);
+    text-align:center; padding:.5rem;
+    border-top:1px solid var(--border);
+    letter-spacing:.1em;
+  }
+  #status-msg { color:var(--accent); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <button class="theme-toggle" id="theme-toggle" type="button" onclick="toggleTheme()"
+          aria-label="Switch to dark mode" aria-pressed="false">
+    <span class="icon" id="theme-icon">🌙</span>
+    <span id="theme-text">Dark mode</span>
+  </button>
+  <div class="lab-tag">⚡ Digital Electronics Laboratory</div>
+  <h1>4-Bit <span>Up/Down</span> Counter</h1>
+  <p class="subtitle">Interactive Simulator &amp; Learning Module &nbsp;|&nbsp; MVCC Digital Systems</p>
+</header>
+
+<!-- ══════════════════════════════════ MAIN DISPLAY ══════════════════════════════════ -->
+<div class="main-grid">
+
+  <!-- BIG DISPLAY PANEL -->
+  <div class="panel display-panel">
+    <div class="panel-title">Counter Output Display</div>
+
+    <div class="counter-display">
+      <!-- Direction -->
+      <div class="direction-indicator">
+        <div class="dir-arrow up" id="dir-arrow">▲</div>
+        <div class="dir-label up" id="dir-label">COUNT UP</div>
+      </div>
+
+      <!-- 7-segment (two decimal digits: tens and units) -->
+      <div class="seg-group" id="seg-group">
+        <div class="seg-digit" id="seg0"><div class="seg seg-a"></div><div class="seg seg-b"></div><div class="seg seg-c"></div><div class="seg seg-d"></div><div class="seg seg-e"></div><div class="seg seg-f"></div><div class="seg seg-g"></div></div>
+        <div class="seg-digit" id="seg1"><div class="seg seg-a"></div><div class="seg seg-b"></div><div class="seg seg-c"></div><div class="seg seg-d"></div><div class="seg seg-e"></div><div class="seg seg-f"></div><div class="seg seg-g"></div></div>
+      </div>
+
+      <!-- Binary LEDs -->
+      <div class="bit-row" id="bit-row">
+        <div class="bit-col"><div class="bit-label">Q3 (8)</div><div class="bit-led" id="led3"></div><div class="bit-val" id="bv3">0</div></div>
+        <div class="bit-col"><div class="bit-label">Q2 (4)</div><div class="bit-led" id="led2"></div><div class="bit-val" id="bv2">0</div></div>
+        <div class="bit-col"><div class="bit-label">Q1 (2)</div><div class="bit-led" id="led1"></div><div class="bit-val" id="bv1">0</div></div>
+        <div class="bit-col"><div class="bit-label">Q0 (1)</div><div class="bit-led" id="led0"></div><div class="bit-val" id="bv0">0</div></div>
+      </div>
+    </div>
+
+    <!-- Readouts -->
+    <div class="readout-row">
+      <div class="readout-box"><div class="r-label">Decimal</div><div class="r-val" id="dec-val">0</div></div>
+      <div class="readout-box"><div class="r-label">Binary</div><div class="r-val" id="bin-str">0000</div></div>
+      <div class="readout-box"><div class="r-label">Hex</div><div class="r-val" id="hex-val">0x0</div></div>
+    </div>
+
+    <!-- Flags -->
+    <div class="flag-row">
+      <div class="flag"><div class="flag-led" id="flag-of"></div>OVERFLOW / CARRY-OUT</div>
+      <div class="flag"><div class="flag-led" id="flag-uf"></div>UNDERFLOW / BORROW</div>
+      <div class="flag"><div class="flag-led" id="flag-zero"></div>ZERO FLAG</div>
+      <div class="flag"><div class="flag-led" id="flag-max"></div>MAX (15)</div>
+    </div>
+  </div>
+
+  <!-- ══ CONTROLS PANEL ══ -->
+  <div class="panel">
+    <div class="panel-title">Control Inputs</div>
+
+    <div class="controls-grid">
+      <button class="btn btn-step" id="btn-step" onclick="step()">⟳ Clock Step</button>
+      <button class="btn btn-auto" id="btn-auto" onclick="toggleAuto()">▶ Auto Run</button>
+      <button class="btn btn-dir"  id="btn-dir"  onclick="toggleDir()">⇅ Toggle Direction</button>
+      <button class="btn btn-reset"              onclick="resetCounter()">↺ Reset</button>
+    </div>
+
+    <!-- Speed -->
+    <div class="slider-wrap">
+      <label for="speed-slider">Clock Speed <span id="speed-label">500 ms</span></label>
+      <input type="range" id="speed-slider" min="50" max="2000" value="500" step="50"
+        oninput="updateSpeed(this.value)">
+    </div>
+
+    <!-- Manual load -->
+    <div style="margin-top:1rem;">
+      <div class="panel-title" style="margin-bottom:.5rem;">Parallel Load (Manual Preset)</div>
+      <div class="load-row">
+        <div class="load-bits">
+          <button class="bit-btn" id="lb3" onclick="toggleLoadBit(3)">0</button>
+          <button class="bit-btn" id="lb2" onclick="toggleLoadBit(2)">0</button>
+          <button class="bit-btn" id="lb1" onclick="toggleLoadBit(1)">0</button>
+          <button class="bit-btn" id="lb0" onclick="toggleLoadBit(0)">0</button>
+        </div>
+        <button class="btn-load" onclick="loadPreset()">⇒ LOAD</button>
+      </div>
+    </div>
+
+    <!-- Quick presets -->
+    <div style="margin-top:.8rem;">
+      <div class="panel-title" style="margin-bottom:.5rem;">Quick Presets</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem;">
+        <button class="btn-preset" onclick="loadVal(0)">→ 0000 (0)</button>
+        <button class="btn-preset" onclick="loadVal(15)">→ 1111 (15)</button>
+        <button class="btn-preset" onclick="loadVal(5)">→ 0101 (5)</button>
+        <button class="btn-preset" onclick="loadVal(10)">→ 1010 (10)</button>
+        <button class="btn-preset" onclick="loadVal(7)">→ 0111 (7)</button>
+        <button class="btn-preset" onclick="loadVal(8)">→ 1000 (8)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ STATE TRUTH TABLE ══ -->
+  <div class="panel">
+    <div class="panel-title">State Transition Table</div>
+    <div style="overflow-y:auto;max-height:280px;" id="truth-scroll">
+      <table class="truth-table" id="truth-table">
+        <thead>
+          <tr>
+            <th>Dec</th><th>Q3</th><th>Q2</th><th>Q1</th><th>Q0</th><th>Hex</th><th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="truth-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ WAVEFORM ══ -->
+  <div class="panel" style="grid-column:1/-1;">
+    <div class="panel-title">Live Clock Waveform &amp; Count History</div>
+    <canvas id="waveform-canvas" height="110"></canvas>
+    <div style="margin-top:.8rem;">
+      <div class="panel-title" style="margin-bottom:.4rem;">Count Trail (last 32 steps)</div>
+      <div class="history-bar" id="history-bar"></div>
+    </div>
+  </div>
+
+  <!-- ══ CONCEPTS ══ -->
+  <div class="panel">
+    <div class="panel-title">Core Concepts</div>
+    <div class="concept-cards">
+      <div class="c-card">
+        <h4>🔼 Up Counting</h4>
+        <p>When U/D̄ = 1, each clock pulse increments Q by +1. After 1111 (15), the counter wraps to 0000 and sets the carry-out (overflow) flag.</p>
+      </div>
+      <div class="c-card orange">
+        <h4>🔽 Down Counting</h4>
+        <p>When U/D̄ = 0, each pulse decrements Q by −1. After 0000 (0), it wraps to 1111 (15) and asserts the borrow (underflow) flag.</p>
+      </div>
+      <div class="c-card green">
+        <h4>⚡ Synchronous Operation</h4>
+        <p>All flip-flops (Q3–Q0) change state simultaneously on the active clock edge — eliminating output glitches seen in ripple counters.</p>
+      </div>
+      <div class="c-card purple">
+        <h4>📥 Parallel Load</h4>
+        <p>A preset/load input asynchronously forces any binary value directly into the counter, bypassing the clock sequence.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ QUIZ ══ -->
+  <div class="panel">
+    <div class="panel-title">Knowledge Check</div>
+    <div class="quiz-section" id="quiz-section"></div>
+  </div>
+
+</div><!-- /main-grid -->
+
+<div class="status-bar">
+  SYSTEM STATUS: <span id="status-msg">READY — Use controls to operate the counter</span>
+  &nbsp;&nbsp;|&nbsp;&nbsp; Clock Pulses: <span id="pulse-count">0</span>
+  &nbsp;&nbsp;|&nbsp;&nbsp; Direction: <span id="status-dir">UP</span>
+</div>
+
+<script>
+// ════════════════════════════════════════
+//  THEME (light default, persisted)
+// ════════════════════════════════════════
+const THEME_KEY = 'elt102-counter-theme';
+
+function currentTheme() {
+  return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  const dark = theme === 'dark';
+  const btn = document.getElementById('theme-toggle');
+  // Button shows the mode it will switch TO
+  document.getElementById('theme-icon').textContent = dark ? '☀️' : '🌙';
+  document.getElementById('theme-text').textContent = dark ? 'Light mode' : 'Dark mode';
+  btn.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
+  btn.setAttribute('aria-pressed', String(dark));
+  updateWaveform(); // canvas colors are read from CSS tokens, so redraw
+}
+
+function toggleTheme() {
+  const next = currentTheme() === 'dark' ? 'light' : 'dark';
+  try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+  applyTheme(next);
+  setStatus(`Theme → ${next.toUpperCase()}`);
+}
+
+// Read a CSS custom property from the active theme
+function cssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+// '#rrggbb' + alpha → 'rgba(...)' for canvas drawing
+function withAlpha(hex, a) {
+  const h = hex.replace('#','');
+  const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
+  const n = parseInt(full, 16);
+  return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+}
+
+// ════════════════════════════════════════
+//  COUNTER STATE
+// ════════════════════════════════════════
+let count    = 0;
+let goingUp  = true;
+let running  = false;
+let autoTimer = null;
+let speed    = 500;
+let pulses   = 0;
+let history  = [];
+let waveData = [];   // [{clk, val}]
+let clkState = 0;
+let loadBits = [0,0,0,0]; // indexed by bit position: loadBits[0]=b0 … loadBits[3]=b3
+
+// 7-segment encoding [a,b,c,d,e,f,g] (0–9 used; A–F available for hex display)
+const SEG7 = {
+  0:[1,1,1,1,1,1,0], 1:[0,1,1,0,0,0,0], 2:[1,1,0,1,1,0,1],
+  3:[1,1,1,1,0,0,1], 4:[0,1,1,0,0,1,1], 5:[1,0,1,1,0,1,1],
+  6:[1,0,1,1,1,1,1], 7:[1,1,1,0,0,0,0], 8:[1,1,1,1,1,1,1],
+  9:[1,1,1,1,0,1,1],10:[1,1,1,0,1,1,1],11:[0,0,1,1,1,1,1],
+  12:[1,0,0,1,1,1,0],13:[0,1,1,1,1,0,1],14:[1,0,0,1,1,1,1],
+  15:[1,0,0,0,1,1,1]
+};
+
+// ════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════
+function init() {
+  buildTruthTable();
+  buildQuiz();
+  applyTheme(currentTheme()); // syncs toggle label; also draws the waveform
+  updateDisplay();
+  updateHistory();
+  updateSpeedSlider();
+}
+
+// ════════════════════════════════════════
+//  COUNTER OPERATIONS
+// ════════════════════════════════════════
+function step() {
+  pulses++;
+  clkState = 1 - clkState;
+
+  let of = false, uf = false;
+  if (goingUp) {
+    if (count === 15) { count = 0; of = true; flashFlag('flag-of'); }
+    else count++;
+  } else {
+    if (count === 0) { count = 15; uf = true; flashFlag('flag-uf'); }
+    else count--;
+  }
+
+  waveData.push({ clk: clkState, val: count, dir: goingUp });
+  if (waveData.length > 64) waveData.shift();
+
+  history.unshift({ val: count, dir: goingUp });
+  if (history.length > 32) history.pop();
+
+  if (of) setStatus('⚠ OVERFLOW — counter wrapped 15 → 0');
+  else if (uf) setStatus('⚠ UNDERFLOW — counter wrapped 0 → 15');
+  else setStatus(`Clock pulse #${pulses} — count ${goingUp?'+1':'-1'} → ${count}`);
+
+  updateDisplay();
+  updateWaveform();
+  updateHistory();
+}
+
+function toggleDir() {
+  goingUp = !goingUp;
+  setStatus(`Direction changed → ${goingUp ? 'COUNT UP ▲' : 'COUNT DOWN ▼'}`);
+  updateDisplay();
+}
+
+function toggleAuto() {
+  running = !running;
+  const btn = document.getElementById('btn-auto');
+  if (running) {
+    btn.textContent = '⏸ Pause'; btn.classList.add('running');
+    autoTimer = setInterval(step, speed);
+    setStatus('Auto-run started');
+  } else {
+    btn.textContent = '▶ Auto Run'; btn.classList.remove('running');
+    clearInterval(autoTimer);
+    setStatus('Auto-run paused');
+  }
+}
+
+function resetCounter() {
+  count = 0; pulses = 0;
+  history = []; waveData = []; clkState = 0;
+  if (running) toggleAuto();
+  setStatus('Counter RESET to 0000');
+  updateDisplay(); updateWaveform(); updateHistory();
+}
+
+function updateSpeed(v) {
+  speed = parseInt(v, 10);
+  document.getElementById('speed-label').textContent = speed + ' ms';
+  updateSpeedSlider();
+  if (running) { clearInterval(autoTimer); autoTimer = setInterval(step, speed); }
+}
+
+function updateSpeedSlider() {
+  const slider = document.getElementById('speed-slider');
+  const pct = ((slider.value - slider.min) / (slider.max - slider.min)) * 100;
+  slider.style.setProperty('--pct', pct + '%');
+}
+
+// Manual load bits
+function toggleLoadBit(i) {
+  loadBits[i] = 1 - loadBits[i];
+  const btn = document.getElementById('lb'+i);
+  btn.textContent = loadBits[i];
+  btn.classList.toggle('on', loadBits[i] === 1);
+}
+
+function loadPreset() {
+  const val = loadBits[3]*8 + loadBits[2]*4 + loadBits[1]*2 + loadBits[0];
+  count = val;
+  history.unshift({ val: count, dir: goingUp });
+  if (history.length > 32) history.pop();
+  setStatus(`Parallel load → ${val.toString(2).padStart(4,'0')} (${val})`);
+  updateDisplay(); updateWaveform(); updateHistory();
+}
+
+function loadVal(v) {
+  count = v;
+  [0,1,2,3].forEach(i => {
+    loadBits[i] = (v >> i) & 1;
+    const b = document.getElementById('lb'+i);
+    b.textContent = loadBits[i];
+    b.classList.toggle('on', loadBits[i]===1);
+  });
+  history.unshift({ val: count, dir: goingUp });
+  if (history.length > 32) history.pop();
+  setStatus(`Preset → ${v.toString(2).padStart(4,'0')} (${v})`);
+  updateDisplay(); updateWaveform(); updateHistory();
+}
+
+// ════════════════════════════════════════
+//  DISPLAY UPDATE
+// ════════════════════════════════════════
+function updateDisplay() {
+  const bits = [(count>>3)&1,(count>>2)&1,(count>>1)&1,count&1];
+
+  for (let i=0;i<4;i++) {
+    const led = document.getElementById('led'+i);
+    const bv  = document.getElementById('bv'+i);
+    const on  = bits[3-i] === 1;
+    led.classList.toggle('on', on);
+    led.classList.toggle('going-down', on && !goingUp);
+    bv.textContent = bits[3-i];
+  }
+
+  // 7-segment: two decimal digits (tens, units)
+  renderSeg('seg0', Math.floor(count/10), !goingUp);
+  renderSeg('seg1', count % 10, !goingUp);
+
+  document.getElementById('dec-val').textContent = count;
+  document.getElementById('bin-str').textContent = count.toString(2).padStart(4,'0');
+  document.getElementById('hex-val').textContent = '0x' + count.toString(16).toUpperCase();
+
+  document.getElementById('flag-zero').classList.toggle('active', count===0);
+  document.getElementById('flag-max').classList.toggle('active', count===15);
+
+  const arr = document.getElementById('dir-arrow');
+  const lbl = document.getElementById('dir-label');
+  arr.className = 'dir-arrow ' + (goingUp?'up':'down');
+  lbl.className = 'dir-label ' + (goingUp?'up':'down');
+  arr.textContent = '▲';
+  lbl.textContent = goingUp ? 'COUNT UP' : 'COUNT DOWN';
+
+  document.getElementById('status-dir').textContent = goingUp ? 'UP ▲' : 'DOWN ▼';
+  document.getElementById('pulse-count').textContent = pulses;
+
+  // Truth table highlight — scroll only the table container, not the page
+  const scroller = document.getElementById('truth-scroll');
+  document.querySelectorAll('#truth-body tr').forEach(tr => {
+    tr.classList.remove('highlight','going-down');
+    if (parseInt(tr.dataset.val, 10) === count) {
+      tr.classList.add('highlight');
+      if (!goingUp) tr.classList.add('going-down');
+      const headH = scroller.querySelector('thead').offsetHeight;
+      const top = tr.offsetTop - headH;
+      const bottom = tr.offsetTop + tr.offsetHeight;
+      if (top < scroller.scrollTop) scroller.scrollTop = top;
+      else if (bottom > scroller.scrollTop + scroller.clientHeight)
+        scroller.scrollTop = bottom - scroller.clientHeight;
+    }
+  });
+}
+
+function renderSeg(id, digit, down) {
+  const segs = document.getElementById(id).querySelectorAll('.seg');
+  const pattern = SEG7[digit] || [0,0,0,0,0,0,0];
+  segs.forEach((s,i) => {
+    s.classList.toggle('on', pattern[i]===1);
+    s.classList.toggle('going-down', pattern[i]===1 && down);
+  });
+}
+
+function flashFlag(id) {
+  const el = document.getElementById(id);
+  el.classList.add('active','pulsing');
+  setTimeout(()=>{ el.classList.remove('active','pulsing'); }, 1800);
+}
+
+// ════════════════════════════════════════
+//  WAVEFORM CANVAS (theme-aware)
+// ════════════════════════════════════════
+function updateWaveform() {
+  const canvas = document.getElementById('waveform-canvas');
+  const W = canvas.offsetWidth || 800;
+  canvas.width = W;
+  const H = canvas.height = 110;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  const accent  = cssVar('--accent');
+  const accent2 = cssVar('--accent2');
+  const green   = cssVar('--green');
+  const text    = cssVar('--text');
+  const dark    = currentTheme() === 'dark';
+  const MONO    = '"Share Tech Mono", monospace';
+
+  // Background grid
+  ctx.strokeStyle = withAlpha(accent, dark ? 0.15 : 0.10);
+  ctx.lineWidth = 1;
+  for (let x=0;x<W;x+=40){ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke(); }
+  for (let y=0;y<H;y+=20){ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke(); }
+
+  if (waveData.length < 2) {
+    ctx.fillStyle = withAlpha(accent, dark ? 0.4 : 0.6);
+    ctx.font = `12px ${MONO}`;
+    ctx.fillText('Step the counter to see waveform...', 20, H/2);
+    return;
+  }
+
+  const n = Math.min(waveData.length, Math.floor(W/12));
+  const data = waveData.slice(-n);
+  const colW = W / data.length;
+  const clkH1 = 8, clkH0 = 38, valH = 75;
+  const glow = dark ? 4 : 0;
+
+  // CLK trace
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 2;
+  ctx.shadowBlur = glow; ctx.shadowColor = accent;
+  ctx.beginPath();
+  data.forEach((d,i) => {
+    const x0 = i * colW, x1 = (i+1)*colW;
+    const y = d.clk ? clkH1 : clkH0;
+    if (i===0) ctx.moveTo(x0, y); else ctx.lineTo(x0, y);
+    ctx.lineTo(x1, y);
+  });
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  ctx.fillStyle = withAlpha(accent, 0.75);
+  ctx.font = `9px ${MONO}`;
+  ctx.fillText('CLK', 4, clkH1+10);
+
+  // Count band
+  ctx.fillStyle = withAlpha(accent, 0.06);
+  ctx.fillRect(0, 50, W, H-50);
+
+  // Count trace
+  ctx.strokeStyle = green;
+  ctx.lineWidth = 2;
+  ctx.shadowBlur = dark ? 5 : 0; ctx.shadowColor = green;
+  ctx.beginPath();
+  data.forEach((d,i) => {
+    const x = i * colW + colW/2;
+    const y = valH - (d.val / 15) * 28;
+    if (i===0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  data.forEach((d,i) => {
+    const x = i * colW + colW/2;
+    const y = valH - (d.val / 15) * 28;
+    ctx.fillStyle = d.dir ? accent : accent2;
+    ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI*2); ctx.fill();
+    if (colW > 18) {
+      ctx.fillStyle = withAlpha(text, 0.75);
+      ctx.font = `8px ${MONO}`;
+      ctx.fillText(d.val, x-4, y-6);
+    }
+  });
+
+  ctx.fillStyle = withAlpha(green, 0.75);
+  ctx.font = `9px ${MONO}`;
+  ctx.fillText('COUNT', 4, valH);
+}
+
+// ════════════════════════════════════════
+//  HISTORY BAR
+// ════════════════════════════════════════
+function updateHistory() {
+  const bar = document.getElementById('history-bar');
+  bar.innerHTML = '';
+  history.forEach(h => {
+    const d = document.createElement('div');
+    d.className = 'hist-dot ' + (h.dir ? 'up' : 'down');
+    d.textContent = h.val;
+    d.title = `Count: ${h.val} | ${h.dir?'↑':'↓'}`;
+    bar.appendChild(d);
+  });
+}
+
+// ════════════════════════════════════════
+//  TRUTH TABLE
+// ════════════════════════════════════════
+function buildTruthTable() {
+  const tbody = document.getElementById('truth-body');
+  const notes = {0:'ZERO / WRAP',15:'MAX / WRAP',7:'Mid-low',8:'Mid-high'};
+  for (let v=0;v<16;v++) {
+    const bits = [(v>>3)&1,(v>>2)&1,(v>>1)&1,v&1];
+    const tr = document.createElement('tr');
+    tr.dataset.val = v;
+    tr.innerHTML = `
+      <td>${v}</td>
+      <td>${bits[0]}</td><td>${bits[1]}</td><td>${bits[2]}</td><td>${bits[3]}</td>
+      <td>${v.toString(16).toUpperCase()}</td>
+      <td style="color:var(--text-dim);font-size:.6rem;">${notes[v]||''}</td>`;
+    tbody.appendChild(tr);
+  }
+}
+
+// ════════════════════════════════════════
+//  STATUS
+// ════════════════════════════════════════
+function setStatus(msg) {
+  document.getElementById('status-msg').textContent = msg;
+}
+
+// ════════════════════════════════════════
+//  QUIZ
+// ════════════════════════════════════════
+const QUESTIONS = [
+  {
+    q: "A 4-bit up/down counter is currently at 1111 (15) counting UP. What happens on the next clock pulse?",
+    opts: ["Stays at 1111","Wraps to 0000 and sets overflow","Goes to 1110","Stops counting"],
+    ans: 1,
+    explain: "When counting up from 15 (1111), the counter wraps around to 0 (0000) and asserts the carry-out (overflow) flag."
+  },
+  {
+    q: "Which input signal determines whether the counter counts up or down?",
+    opts: ["Clock (CLK)","Parallel Load (PL)","Up/Down control (U/D̄)","Clear (CLR)"],
+    ans: 2,
+    explain: "The U/D̄ (Up/Down) control input determines count direction. When HIGH, it counts up; when LOW, it counts down."
+  },
+  {
+    q: "What is the decimal value of binary output Q3=1, Q2=0, Q1=1, Q0=0?",
+    opts: ["5","10","12","6"],
+    ans: 1,
+    explain: "1×8 + 0×4 + 1×2 + 0×1 = 8 + 0 + 2 + 0 = 10. Remember: Q3 is the MSB (weight 8)."
+  },
+  {
+    q: "What flag is asserted when a down-counter reaches 0000 and receives another clock pulse?",
+    opts: ["Overflow / Carry-out","Zero flag","Underflow / Borrow","Max flag"],
+    ans: 2,
+    explain: "Going below 0 causes an underflow — the counter wraps to 1111 (15) and asserts the borrow (underflow) flag."
+  },
+  {
+    q: "Why is a synchronous counter preferred over a ripple counter?",
+    opts: [
+      "It uses fewer flip-flops",
+      "All outputs change simultaneously, eliminating glitches",
+      "It can count in hexadecimal",
+      "It requires no clock signal"
+    ],
+    ans: 1,
+    explain: "In synchronous counters, all flip-flops are clocked together. Ripple counters propagate changes sequentially, causing brief timing glitches (hazards) between states."
+  },
+  {
+    q: "The parallel load (preset) feature allows you to:",
+    opts: [
+      "Change the clock frequency",
+      "Force any binary value into the counter asynchronously",
+      "Count by values other than 1",
+      "Permanently stop the counter"
+    ],
+    ans: 1,
+    explain: "Parallel load bypasses the clock sequence and forces a specific binary value directly into the flip-flops — useful for initializing the counter to any starting value."
+  }
+];
+
+let qIdx = 0, qAnswered = false, qScore = 0;
+
+function buildQuiz() { renderQuestion(); }
+
+function renderQuestion() {
+  const section = document.getElementById('quiz-section');
+  const q = QUESTIONS[qIdx];
+  qAnswered = false;
+  section.innerHTML = `
+    <div style="font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--text-dim);margin-bottom:.5rem;">
+      Question ${qIdx+1} of ${QUESTIONS.length} &nbsp;|&nbsp; Score: ${qScore}/${qIdx}
+    </div>
+    <div class="quiz-q">${q.q}</div>
+    <div class="quiz-options" id="quiz-opts">
+      ${q.opts.map((o,i)=>`<button class="quiz-opt" onclick="answerQuiz(${i})">${String.fromCharCode(65+i)}. ${o}</button>`).join('')}
+    </div>
+    <div class="quiz-feedback" id="quiz-fb"></div>
+    <div class="quiz-nav">
+      <button class="btn-preset" onclick="prevQ()" ${qIdx===0?'disabled':''}>◀ Prev</button>
+      <button class="btn-preset" id="next-btn" onclick="nextQ()" style="display:none">Next ▶</button>
+    </div>`;
+}
+
+function answerQuiz(i) {
+  if (qAnswered) return;
+  qAnswered = true;
+  const q = QUESTIONS[qIdx];
+  const opts = document.querySelectorAll('.quiz-opt');
+  const fb = document.getElementById('quiz-fb');
+  if (i === q.ans) {
+    opts[i].classList.add('correct');
+    fb.style.color = 'var(--green)';
+    fb.textContent = '✓ Correct! ' + q.explain;
+    qScore++;
+  } else {
+    opts[i].classList.add('wrong');
+    opts[q.ans].classList.add('correct');
+    fb.style.color = 'var(--red)';
+    fb.textContent = '✗ Incorrect. ' + q.explain;
+  }
+  const nb = document.getElementById('next-btn');
+  if (nb) nb.style.display = 'block';
+}
+
+function nextQ() {
+  if (qIdx < QUESTIONS.length-1) { qIdx++; renderQuestion(); }
+  else {
+    document.getElementById('quiz-section').innerHTML = `
+      <div style="text-align:center;padding:1rem;">
+        <div style="font-family:'Orbitron',sans-serif;font-size:1.2rem;color:var(--yellow);margin-bottom:.5rem;">
+          Quiz Complete!</div>
+        <div style="font-size:.85rem;color:var(--text);">Score: <strong>${qScore}/${QUESTIONS.length}</strong></div>
+        <div style="font-size:.75rem;color:var(--text-dim);margin:.5rem 0;">
+          ${qScore>=5?'🏆 Excellent mastery!':qScore>=3?'👍 Good understanding — review the concepts panel.':'📖 Review the core concepts and try again.'}</div>
+        <button class="btn-preset" onclick="qIdx=0;qScore=0;buildQuiz();" style="margin-top:.5rem;">↺ Restart Quiz</button>
+      </div>`;
+  }
+}
+function prevQ() { if (qIdx>0){ qIdx--; renderQuestion(); } }
+
+// ════════════════════════════════════════
+//  RESIZE WAVEFORM ON WINDOW RESIZE
+// ════════════════════════════════════════
+window.addEventListener('resize', updateWaveform);
+
+// ════════════════════════════════════════
+//  KEYBOARD SHORTCUTS
+//  Space = step, D = direction, A = auto, R = reset, T = theme
+// ════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const tag = e.target.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+  if (e.key === ' ') {
+    if (tag === 'BUTTON') return; // let Space press the focused button (avoids a double step)
+    e.preventDefault(); step();
+  }
+  if (e.key === 'd' || e.key === 'D') toggleDir();
+  if (e.key === 'a' || e.key === 'A') toggleAuto();
+  if (e.key === 'r' || e.key === 'R') resetCounter();
+  if (e.key === 't' || e.key === 'T') toggleTheme();
+});
+
+// ════════════════════════════════════════
+//  START
+// ════════════════════════════════════════
+init();
+</script>
+</body>
+</html>
