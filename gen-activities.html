@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
@@ -42,6 +41,13 @@
   }
   a { color: var(--accent); }
   .wrap { max-width: 1080px; margin: 0 auto; padding: 24px 20px 90px; }
+
+  /* Visible keyboard focus for every control in the tool itself */
+  a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible,
+  textarea:focus-visible, summary:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+  }
 
   header.page-head {
     display: flex;
@@ -202,6 +208,11 @@
   .lab-line { margin-top: 6px; font-size: 0.8rem; color: var(--muted); }
   .lab-line strong { color: var(--accent); }
   .opt-tag { font-size: 0.7rem; font-weight: 600; color: var(--muted); margin-left: 8px; letter-spacing: .2px; }
+  .req-tag {
+    font-size: 0.7rem; font-weight: 700; margin-left: 8px; letter-spacing: .2px;
+    color: var(--accent); background: var(--accent-soft);
+    border: 1px solid var(--accent); border-radius: 999px; padding: 1px 8px;
+  }
   .persona-list { display: flex; flex-direction: column; gap: 8px; }
   .persona-row {
     display: flex; align-items: flex-start; gap: 10px;
@@ -213,6 +224,13 @@
   .persona-row input { margin-top: 3px; width: 16px; height: 16px; flex-shrink: 0; accent-color: var(--accent); }
   .persona-row .txt strong { display: block; font-size: 0.88rem; }
   .persona-row .txt span { display: block; font-size: 0.8rem; color: var(--muted); line-height: 1.4; }
+  .a11y-status { font-size: 0.78rem; color: var(--muted); margin-top: 10px; }
+  .a11y-status.warn { color: #b26a00; font-weight: 600; }
+  :root[data-theme="dark"] .a11y-status.warn { color: #ffb74d; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .chev, .persona-row { transition: none; }
+  }
 </style>
 </head>
 <body>
@@ -455,9 +473,32 @@
   </div>
 </details>
 
-<!-- 7. AI DESIGN TEAM -->
+<!-- 7. ACCESSIBILITY BASELINE (ADA) -->
 <details class="card" open>
-  <summary><span class="num">7</span> Assemble Your AI Design Team <span class="opt-tag">Optional — all 5 recommended</span> <span class="chev">▾</span></summary>
+  <summary><span class="num">7</span> Accessibility Baseline (ADA) <span class="req-tag">Included in every prompt</span> <span class="chev">▾</span></summary>
+  <div class="card-body">
+<p class="hint" style="margin:12px 0;">These requirements are added to each generated prompt so the activity — and any simulation, LMS page, handout, or media that comes with it — targets WCAG 2.2 Level AA (a superset of the WCAG 2.1 AA standard referenced by the ADA Title II rule). All nine are on by default; uncheck one only when it clearly doesn't apply.</p>
+<fieldset style="margin:0;">
+<legend class="hint" style="margin:0 0 8px;">Accessibility requirements</legend>
+<div class="persona-list" id="a11yList">
+  <label class="persona-row is-checked"><input type="checkbox" data-group="a11y" checked value="Keyboard operation: every interactive element (simulator controls, quiz items, LMS widgets) works with the keyboard alone (Tab, Shift+Tab, Enter, Space, arrow keys), with no keyboard traps — focus can always move into and back out of every component (WCAG 2.1.1, 2.1.2)."><span class="txt"><strong>Keyboard-operable, no keyboard traps</strong><span>Every interactive part works by keyboard alone, and focus can always leave any component</span></span></label>
+  <label class="persona-row is-checked"><input type="checkbox" data-group="a11y" checked value="Focus: keyboard focus is always clearly visible and never hidden behind sticky headers or overlays; focus order follows the logical reading order; focus moves predictably when dialogs, feedback, or new steps appear, with no unexpected context changes on focus or input (WCAG 2.4.3, 2.4.7, 2.4.11, 3.2.1, 3.2.2)."><span class="txt"><strong>Visible focus, predictable focus management</strong><span>A clear focus indicator, logical tab order, and no surprise jumps when content changes</span></span></label>
+  <label class="persona-row is-checked"><input type="checkbox" data-group="a11y" checked value="Dragging alternatives: any drag-and-drop task (e.g., placing components on a virtual breadboard, ordering steps, matching gates to truth tables) can also be completed with single clicks or taps and with the keyboard (e.g., select-then-place buttons or menus); pointer targets are at least 24 × 24 CSS px (WCAG 2.5.1, 2.5.7, 2.5.8)."><span class="txt"><strong>Alternatives to dragging</strong><span>Drag-and-drop tasks also work with single clicks/taps and with the keyboard</span></span></label>
+  <label class="persona-row is-checked"><input type="checkbox" data-group="a11y" checked value="Structure and feedback: use semantic headings, lists, tables, and landmarks; every input, select, and button has a visible, programmatic label; correct/incorrect feedback and error messages are announced to screen readers (ARIA live region or managed focus) and explain how to fix the problem (WCAG 1.3.1, 2.4.6, 3.3.1, 3.3.2, 4.1.2, 4.1.3)."><span class="txt"><strong>Semantic structure, labeled controls, accessible feedback</strong><span>Real headings and tables, labeled inputs, and feedback announced to screen readers</span></span></label>
+  <label class="persona-row is-checked"><input type="checkbox" data-group="a11y" checked value="Text alternatives: give meaningful images concise alt text and decorative images empty alt; for complex visuals — schematics, breadboard layouts, timing diagrams, waveforms, I-V curves, K-maps — provide a structured long description (component list with values, node-by-node connection list, and expected behavior), and present truth tables and measurement data as real data tables with header cells, not images (WCAG 1.1.1, 1.3.1)."><span class="txt"><strong>Text alternatives and structured diagram descriptions</strong><span>Alt text, plus node-by-node descriptions for schematics, waveforms, and timing diagrams</span></span></label>
+  <label class="persona-row is-checked"><input type="checkbox" data-group="a11y" checked value="Media: any video or animation with audio has accurate synchronized captions; provide audio description (or a descriptive transcript) wherever important visual information — such as oscilloscope traces or a bench demonstration — is not conveyed by the narration (WCAG 1.2.2, 1.2.3, 1.2.5)."><span class="txt"><strong>Captions and audio descriptions</strong><span>Captioned media, with described visuals such as scope traces and bench demos</span></span></label>
+  <label class="persona-row is-checked"><input type="checkbox" data-group="a11y" checked value="Visual presentation: text contrast at least 4.5:1 (3:1 for large text) and at least 3:1 for UI components and graph/trace lines; never use color alone to convey meaning — pair it with text, icons, or patterns (resistor color codes, LED states, wire colors, and pass/fail indicators must also be identified in text); content stays usable at 200% text size, with adjusted text spacing, and reflows without horizontal scrolling at 320 CSS px width (WCAG 1.4.1, 1.4.3, 1.4.4, 1.4.10, 1.4.11, 1.4.12)."><span class="txt"><strong>Contrast, non-color indicators, enlargement, reflow</strong><span>Color is never the only cue — resistor bands and LED states get text labels too</span></span></label>
+  <label class="persona-row is-checked"><input type="checkbox" data-group="a11y" checked value="Timing and motion: timed practice, quizzes, and challenges (including gamified or speed rounds) let learners turn off, adjust, or extend the time limit; moving or auto-updating content can be paused; animations respect prefers-reduced-motion; nothing flashes more than three times per second — take care with blinking LED, clock-pulse, and 555-oscillator animations (WCAG 2.2.1, 2.2.2, 2.3.1, 2.3.3)."><span class="txt"><strong>Adjustable timing, reduced motion, no flashing hazards</strong><span>Extendable time limits, reduced-motion support, and safe blink rates for LED/clock animations</span></span></label>
+  <label class="persona-row is-checked"><input type="checkbox" data-group="a11y" checked value="Testing: include a brief accessibility test plan — automated checks (e.g., axe DevTools, WAVE, Lighthouse) plus manual keyboard-only testing, screen-reader testing (NVDA and/or VoiceOver), 200% and 400% zoom/reflow checks, and a complete start-to-finish walkthrough of the activity using each method."><span class="txt"><strong>Automated and manual testing</strong><span>Automated scans plus keyboard, screen-reader, zoom, and full-workflow walkthroughs</span></span></label>
+</div>
+</fieldset>
+<div class="a11y-status" id="a11yStatus" aria-live="polite"></div>
+  </div>
+</details>
+
+<!-- 8. AI DESIGN TEAM -->
+<details class="card" open>
+  <summary><span class="num">8</span> Assemble Your AI Design Team <span class="opt-tag">Optional — all 5 recommended</span> <span class="chev">▾</span></summary>
   <div class="card-body">
 <p class="hint" style="margin:0 0 12px;">These roles tell the AI which expert lens to build with. Keep all 5 on for the most polished result.</p>
 <div class="persona-list" id="personaList">
@@ -470,9 +511,9 @@
   </div>
 </details>
 
-<!-- 8. TARGET MODEL -->
+<!-- 9. TARGET MODEL -->
 <details class="card" open>
-  <summary><span class="num">8</span> Target Model <span class="chev">▾</span></summary>
+  <summary><span class="num">9</span> Target Model <span class="chev">▾</span></summary>
   <div class="card-body">
 <div class="field">
   <label for="targetModel">Generate this prompt for</label>
@@ -505,7 +546,7 @@
           <div class="copy-flash" id="copyFlash" aria-live="polite"></div>
           <div class="safeguard-note">
             Built for ELT 102-350: Digital Logic &amp; Solid State Devices · Moraine Valley Community College.
-            Verify all component values, formulas, and pinouts against datasheets, and review generated activities against your department's lab safety and responsible AI use policies before classroom use.
+            Verify all component values, formulas, and pinouts against datasheets, and review generated activities against your department's lab safety, accessibility, and responsible AI use policies before classroom use.
           </div>
         </div>
       </div>
@@ -784,6 +825,12 @@ const MODEL_INTROS = {
 const TEAM_FOCUS = "technical accuracy, learning alignment, realistic lab workflow, safety, and assessment";
 const TEAM_FALLBACK = "Act as an expert electronics lab instructor and instructional designer.";
 
+// ---- Accessibility baseline (ADA) prompt text ----
+const A11Y_HEADING = 'ACCESSIBILITY BASELINE (ADA — WCAG 2.2 LEVEL AA)';
+const A11Y_SCOPE = 'Apply every requirement below to all digital components of this activity (simulations, interactive widgets, LMS pages, handouts, slides, and media). Where a step is physical bench work, describe an equivalent accessible path (e.g., a lab-partner role split, a simulation alternative, or tactile/large-print materials) rather than dropping the requirement.';
+const A11Y_REPORT = 'End the output with a short "Accessibility notes" section stating how each requirement above is met, or why it does not apply to this activity.';
+const A11Y_TOTAL = document.querySelectorAll('input[data-group="a11y"]').length;
+
 // ---- Tool-specific prompt sections ----
 function buildSections(lines) {
 
@@ -812,6 +859,29 @@ function buildSections(lines) {
   checkedValues('activityOption').forEach(o => lines.push(`- ${o}`));
   lines.push('');
 
+}
+
+// ---- Accessibility baseline section ----
+function buildAccessibility(lines) {
+  const a11y = checkedValues('a11y');
+  const status = document.getElementById('a11yStatus');
+  if (a11y.length === A11Y_TOTAL) {
+    status.className = 'a11y-status';
+    status.textContent = `All ${A11Y_TOTAL} accessibility requirements will be added to the prompt.`;
+  } else if (a11y.length) {
+    status.className = 'a11y-status warn';
+    status.textContent = `${a11y.length} of ${A11Y_TOTAL} accessibility requirements will be added. Unchecked items are left out of the prompt.`;
+  } else {
+    status.className = 'a11y-status warn';
+    status.textContent = 'No accessibility requirements selected — the prompt will not include the ADA baseline.';
+  }
+  if (!a11y.length) return;
+
+  lines.push(A11Y_HEADING);
+  lines.push(`- Scope: ${A11Y_SCOPE}`);
+  a11y.forEach(r => lines.push(`- ${r}`));
+  lines.push(`- ${A11Y_REPORT}`);
+  lines.push('');
 }
 
 // ---- Populate lesson dropdown ----
@@ -875,6 +945,7 @@ function buildPrompt() {
   lines.push('');
 
   const personas = checkedValues('persona');
+  // Keeps the highlighted state in sync for both persona and accessibility rows
   document.querySelectorAll('.persona-row').forEach(r => r.classList.toggle('is-checked', r.querySelector('input').checked));
   lines.push('AI DESIGN TEAM');
   if (personas.length) {
@@ -907,6 +978,8 @@ function buildPrompt() {
     pedConstraints.forEach(c => lines.push(`- ${c}`));
     lines.push('');
   }
+
+  buildAccessibility(lines);
 
   lines.push(`This ${NOUN} is for classroom teaching use in ELT 102-350: Digital Logic & Solid State Devices — a three-credit hybrid electronics course (2 hrs lecture / 2 hrs lab per session) at Moraine Valley Community College.`);
 
